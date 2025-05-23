@@ -1,1 +1,5 @@
+out/production/KlotskiPuzzle/resources/images/login_bg.gif filter=lfs diff=lfs merge=lfs -text
+resources/images/login_bg.gif filter=lfs diff=lfs merge=lfs -text
+resources/images/*.gif filter=lfs diff=lfs merge=lfs -text
+out/production/KlotskiPuzzle/resources/image/三国1080.gif filter=lfs diff=lfs merge=lfs -text
 resources/image/三国1080.gif filter=lfs diff=lfs merge=lfs -text
