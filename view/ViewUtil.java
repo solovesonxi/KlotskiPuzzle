@@ -81,6 +81,20 @@ public class ViewUtil {
         return btn;
     }
 
+    public static void createExitButton(JPanel frame, String text, Point pos, int width, int height, Color bgColor, Font font) {
+        JButton btn = new JButton(text);
+        // 基础样式设置
+        btn.setBounds(pos.x, pos.y, width, height);
+        btn.setBackground(bgColor);
+        btn.setForeground(new Color(255, 223, 0)); // 浅米色文字
+        btn.setFont(font);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(139, 69, 19, 200)), BorderFactory.createEmptyBorder(5, 15, 5, 15)));
+        btn.setOpaque(true);
+        btn.setEnabled(false);
+        frame.add(btn);
+    }
+
     public static void addButtonMouseListener(JButton button, String path) {
         ImageIcon originalIcon = new ImageIcon(path);
         Image img = originalIcon.getImage();

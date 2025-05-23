@@ -38,12 +38,12 @@ public class MainFrame extends JFrame {
         this.add(container);
 
         // 音乐播放按钮
-        soundBtn = ViewUtil.createMusicButton("resources/image/play.png", new Point(width/2-25 , height-100));
+        soundBtn = ViewUtil.createMusicButton("resources/image/play.png", new Point(width-135 , 10));
         soundBtn.addActionListener(_ -> toggleBGM());
-        lastBtn = ViewUtil.createMusicButton("resources/image/last.png", new Point(width/2 - 87, height-100));
+        lastBtn = ViewUtil.createMusicButton("resources/image/last.png", new Point(width - 197, 10));
         lastBtn.addActionListener(_ -> playTrack(false));
         ViewUtil.addButtonMouseListener(lastBtn, "resources/image/last.png");
-        nextBtn = ViewUtil.createMusicButton("resources/image/next.png", new Point(width/2 +35, height-100));
+        nextBtn = ViewUtil.createMusicButton("resources/image/next.png", new Point(width -75, 10));
         nextBtn.addActionListener(_ -> playTrack(true));
         ViewUtil.addButtonMouseListener(nextBtn, "resources/image/next.png");
 
@@ -62,9 +62,9 @@ public class MainFrame extends JFrame {
         CustomDifficultyDialog dialog = new CustomDifficultyDialog(this);
         dialog.setVisible(true);
         MapModel mapModel= new MapModel(new int[][]{{3, 4, 4, 3}, {3, 4, 4, 3}, {3, 2, 2, 3}, {3, 0, 0, 3}, {1, 0, 0, 1}});
-        if ("运筹帷幄".equals(dialog.getSelectedDifficulty())) {
+        if ("刮目相待".equals(dialog.getSelectedDifficulty())) {
             mapModel= new MapModel(new int[][]{{3, 4, 4, 3}, {3, 4, 4, 3}, {3, 2, 2, 3}, {3, 1, 0, 3}, {1, 0, 0, 1}});
-        } else if ("决胜千里".equals(dialog.getSelectedDifficulty())) {
+        } else if ("运筹帷幄".equals(dialog.getSelectedDifficulty())) {
             mapModel= new MapModel(new int[][]{{3, 4, 4, 3}, {3, 4, 4, 3}, {3, 2, 2, 3}, {3, 1, 1, 3}, {1, 0, 0, 1}});
         }
         ControlPanel controlPanel = new ControlPanel(this, this.getWidth(), this.getHeight(), lastBtn, nextBtn, soundBtn, mapModel, user, dialog.getSelectedDifficulty());

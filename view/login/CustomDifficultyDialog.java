@@ -10,7 +10,7 @@ public class CustomDifficultyDialog extends JDialog {
     private final Color DARK_BROWN = new Color(54, 35, 23);
     private final Color GOLD = new Color(205, 170, 109);
     public CustomDifficultyDialog(JFrame parent) {
-        super(parent, "游戏准备", true);
+        super(parent, "开始游戏", true);
         setupUI();
         setSize(553, 300);
         setLocationRelativeTo(parent);
@@ -42,7 +42,7 @@ public class CustomDifficultyDialog extends JDialog {
         buttonContainer.setOpaque(false);
         buttonContainer.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 50));
 
-        String[] difficulties = {"初出茅庐", "运筹帷幄", "决胜千里"};
+        String[] difficulties = {"初出茅庐", "刮目相待", "运筹帷幄"};
         for (String diff : difficulties) {
             JButton btn = createAncientButton(diff);
             btn.addActionListener(this::handleSelection);

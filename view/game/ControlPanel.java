@@ -54,7 +54,7 @@ public class ControlPanel extends JPanel {
         contentPanel.add(next);
         contentPanel.add(sound);
 
-        ImageIcon originalIcon = new ImageIcon("resources/image/login_bg.png");
+        ImageIcon originalIcon = new ImageIcon("resources/image/background.png");
         Image scaledImage = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
         JLabel backgroundLabel = new JLabel(new ImageIcon(scaledImage));
         backgroundLabel.setBounds(0, 0, width, height);
@@ -66,13 +66,13 @@ public class ControlPanel extends JPanel {
         int buttonWidth = 120; // 适当加宽按钮
         int buttonHeight = 50; // 统一按钮高度
         // 右侧功能按钮组
-        restartBtn = ViewUtil.createStyledButton(contentPanel, "重整旗鼓", new Point(width / 2 + 380, height / 2 - 200), buttonWidth, buttonHeight, btnColor, btnFont);
-        loadBtn = ViewUtil.createStyledButton(contentPanel, "切换战场", new Point(width / 2 + 380, height / 2 - 100), buttonWidth, buttonHeight, btnColor, btnFont);
-        undoBtn = ViewUtil.createStyledButton(contentPanel, "撤军回防", new Point(width / 2 + 380, height / 2), buttonWidth, buttonHeight, btnColor, btnFont);
-        AIBtn = ViewUtil.createStyledButton(contentPanel, "军师献策", new Point(width / 2 + 380, height / 2 + 100), buttonWidth, buttonHeight, btnColor, btnFont);
-        logoutBtn = ViewUtil.createStyledButton(contentPanel, "退出战场", new Point(width / 2 + 380, height / 2 + 200), buttonWidth, buttonHeight, btnColor, btnFont);
-        showRankBtn = ViewUtil.createStyledButton(contentPanel, "<html>战<br>功<br>榜</html>", new Point(0, height / 2 - 100), 80, 200, new Color(54, 35, 28), // 深古铜色
-                new Font("华文行楷", Font.PLAIN, 28));
+        restartBtn = ViewUtil.createStyledButton(contentPanel, "重整旗鼓", new Point(width / 2 + 380, height / 2 - 250), buttonWidth, buttonHeight, btnColor, btnFont);
+        loadBtn = ViewUtil.createStyledButton(contentPanel, "切换战场", new Point(width / 2 + 380, height / 2 - 150), buttonWidth, buttonHeight, btnColor, btnFont);
+        undoBtn = ViewUtil.createStyledButton(contentPanel, "撤军回防", new Point(width / 2 + 380, height / 2-50), buttonWidth, buttonHeight, btnColor, btnFont);
+        AIBtn = ViewUtil.createStyledButton(contentPanel, "军师献策", new Point(width / 2 + 380, height / 2 + 50), buttonWidth, buttonHeight, btnColor, btnFont);
+        logoutBtn = ViewUtil.createStyledButton(contentPanel, "退出战场", new Point(width / 2 + 380, height / 2 + 150), buttonWidth, buttonHeight, btnColor, btnFont);
+        showRankBtn = ViewUtil.createStyledButton(contentPanel, "<html>战<br>功<br>榜</html>", new Point(0, height / 2 - 100), 80, 200, new Color(54, 35, 28),new Font("华文行楷", Font.PLAIN, 28));
+        ViewUtil.createExitButton(contentPanel, "华容道出口", new Point(width / 2 -100, height - 230), 200, 80, new Color(72, 60, 50, 200), new Font("华文行楷", Font.PLAIN, 30));
         // 方向控制按钮组（增加古风边框）
         upBtn = ViewUtil.createAncientButton(contentPanel, "↑ 进", new Point(width / 2 - 470, height / 2 - 100), 80, 60);
         downBtn = ViewUtil.createAncientButton(contentPanel, "↓ 退", new Point(width / 2 - 470, height / 2 + 40), 80, 60);
@@ -85,7 +85,7 @@ public class ControlPanel extends JPanel {
 
         gamePanel = new GamePanel(mapModel);
         gamePanel.setLabel(stepLabel, countdownLabel);
-        gamePanel.setLocation(width / 2 - gamePanel.getWidth() / 2, height / 2 - gamePanel.getHeight() / 2);
+        gamePanel.setLocation(width / 2 - gamePanel.getWidth() / 2, height / 2 - gamePanel.getHeight() / 2-50);
         this.controller = new GameController(gamePanel, mapModel, user, difficulty);
         this.add(gamePanel);
         restartBtn.addActionListener(_ -> controller.restartGame());
@@ -98,6 +98,26 @@ public class ControlPanel extends JPanel {
         downBtn.addActionListener(_ -> gamePanel.doMoveDown());
         leftBtn.addActionListener(_ -> gamePanel.doMoveLeft());
         rightBtn.addActionListener(_ -> gamePanel.doMoveRight());
+
+        JLabel exitLabel = new JLabel("") {
+            @Override
+            public void setBounds(int x, int y, int width, int height) {
+                // 动态居中定位（适配面板尺寸变化）
+                super.setBounds((getParent().getWidth()-200)/2, getParent().getHeight()-50, 200, 30);
+            }
+        };
+
+// 样式配置（古风效果）
+        exitLabel.setForeground(new Color(178, 34, 34)); // 火焰红
+        exitLabel.setFont(new Font("华文隶书", Font.BOLD, 22));
+        exitLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+// 添加半透明背景（可选）
+        exitLabel.setOpaque(true);
+        exitLabel.setBackground(new Color(255, 255, 255, 80)); // 半透明白色底
+
+        this.add(exitLabel); // 添加到内容面板
+
         Timer timer = new Timer(500, _ -> {
             if (gamePanel.isVisible()) {
                 gamePanel.requestFocusInWindow(); //确保键盘被监听
