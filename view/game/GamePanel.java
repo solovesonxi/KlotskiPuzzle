@@ -13,17 +13,16 @@ import java.util.List;
 
 // 游戏面板，显示棋盘和方块
 public class GamePanel extends ListenerPanel {
-    private final List<BoxComponent> boxes;
-    private final MapModel model;
+    private final List<BoxComponent> boxes; // 存储方块组件
+    private final MapModel model; // 游戏地图模型
     private GameController controller;
 
-    private final int GRID_SIZE = 100;
-    private BoxComponent selectedBox;
-    public JLabel stepLabel;
-    public JLabel countdownLabel;
-    public int steps;
-    public Timer countdownTimer;
-
+    private final int GRID_SIZE = 100; // 网格大小
+    private BoxComponent selectedBox; // 被选中的方块
+    public JLabel stepLabel; // 步数标签
+    public JLabel countdownLabel; //倒计时标签
+    public int steps; // 当前步数
+    public Timer countdownTimer; // 倒计时计时器
 
     public GamePanel(MapModel model) {
         boxes = new ArrayList<>();
@@ -34,12 +33,12 @@ public class GamePanel extends ListenerPanel {
         this.setSize(model.getWidth() * GRID_SIZE + 4, model.getHeight() * GRID_SIZE + 4);
         this.model = model;
         this.selectedBox = null;
-        initialGame(0, 180);
+        initialGame(0, 180); // 初始化游戏
     }
 
     // 初始化棋盘图像
     public void initialGame(int step, int countdown) {
-        this.steps = step;
+        this.steps = step; // 更新步数
         if (this.stepLabel != null) this.stepLabel.setText(String.format("行军步数：%d", steps));
         if (countdown > 0) {
             if (this.countdownLabel != null) this.countdownLabel.setText(String.format("剩余时限：%d息", countdown));
@@ -47,25 +46,25 @@ public class GamePanel extends ListenerPanel {
             if (countdownTimer != null) {
                 countdownTimer.stop();
             }
-            countdownTimer = new Timer(1000, _ -> {
+            countdownTimer = new Timer(1000, _ -> { // 每秒减少倒计时时间
                 if (finalCountDown[0] > 0) {
                     finalCountDown[0]--;
                     if (countdownLabel != null)
                         countdownLabel.setText(String.format("剩余时限：%d息", finalCountDown[0]));
                     if (finalCountDown[0] <= 0) {
                         countdownTimer.stop();
-                        controller.endGame(false);
+                        controller.endGame(false); // 倒计时结束，游戏失败
                     }
                 }
             });
-            countdownTimer.start();
+            countdownTimer.start(); // 启动计时器
         }
         boxes.clear();
         this.removeAll(); // 清空面板
         int[][] map = new int[model.getHeight()][model.getWidth()];
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map[0].length; j++) {
-                map[i][j] = model.getId(i, j);
+                map[i][j] = model.getId(i, j); // 从模型获取地图信息
             }
         }
         // 绘制四种方块
@@ -75,24 +74,24 @@ public class GamePanel extends ListenerPanel {
             for (int j = 0; j < map[0].length; j++) {
                 BoxComponent box = null;
                 if (map[i][j] == 1) {
-                    box = new BoxComponent(soldierImages.removeFirst(), i, j);
+                    box = new BoxComponent(soldierImages.removeFirst(), i, j); // 创建士兵方块
                     box.setSize(GRID_SIZE, GRID_SIZE);
                     map[i][j] = 0;
                 } else if (map[i][j] == 2) {
-                    box = new BoxComponent("关羽.png", i, j);
+                    box = new BoxComponent("关羽.png", i, j); // 创建关羽方块
                     box.setSize(GRID_SIZE * 2, GRID_SIZE);
                     map[i][j] = 0;
-                    map[i][j + 1] = 0;
+                    map[i][j + 1] = 0; // 占用两个格子
                 } else if (map[i][j] == 3) {
                     if (!fiveTiggerImages.isEmpty()) {
-                        box = new BoxComponent(fiveTiggerImages.removeFirst(), i, j);
+                        box = new BoxComponent(fiveTiggerImages.removeFirst(), i, j); // 创建五虎方块
                         box.setSize(GRID_SIZE, GRID_SIZE * 2);
                         map[i][j] = 0;
-                        map[i + 1][j] = 0;
+                        map[i + 1][j] = 0; // 占用两个格子
                     }
                 } else if (map[i][j] == 4) {
-                    box = new BoxComponent("曹操.png", i, j);
-                    box.setSize(GRID_SIZE * 2, GRID_SIZE * 2);
+                    box = new BoxComponent("曹操.png", i, j); // 创建曹操方块
+                    box.setSize(GRID_SIZE * 2, GRID_SIZE * 2); // 占用四个格子
                     map[i][j] = 0;
                     map[i + 1][j] = 0;
                     map[i][j + 1] = 0;
@@ -100,9 +99,9 @@ public class GamePanel extends ListenerPanel {
                 }
 
                 if (box != null) {
-                    box.setLocation(j * GRID_SIZE + 2, i * GRID_SIZE + 2);
+                    box.setLocation(j * GRID_SIZE + 2, i * GRID_SIZE + 2); // 设置位置
                     boxes.add(box);
-                    this.add(box);
+                    this.add(box); // 添加到面板
                 }
             }
         }
@@ -115,7 +114,7 @@ public class GamePanel extends ListenerPanel {
         g.setColor(Color.LIGHT_GRAY);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
         Border border = BorderFactory.createLineBorder(Color.DARK_GRAY, 2);
-        this.setBorder(border);
+        this.setBorder(border); // 设置边框
     }
 
     @Override
@@ -138,74 +137,77 @@ public class GamePanel extends ListenerPanel {
 
     @Override
     public void doMoveRight() {
-        System.out.println("向右");
         if (selectedBox != null) {
+            System.out.print("玩家向右: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.RIGHT)) {
-                afterMove();
+                afterMove(); // 更新步数
             }
         }
     }
 
     @Override
     public void doMoveLeft() {
-        System.out.println("向左");
         if (selectedBox != null) {
+            System.out.print("玩家向左: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.LEFT)) {
-                afterMove();
+                afterMove(); // 更新步数
             }
         }
     }
 
     @Override
     public void doMoveUp() {
-        System.out.println("向上");
         if (selectedBox != null) {
+            System.out.print("玩家向上: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.UP)) {
-                afterMove();
+                afterMove(); // 更新步数
             }
         }
     }
 
     @Override
     public void doMoveDown() {
-        System.out.println("向下");
         if (selectedBox != null) {
+            System.out.print("玩家向下: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.DOWN)) {
-                afterMove();
+                afterMove(); // 更新步数
             }
         }
     }
 
+    // 更新步数
     public void afterMove() {
         this.steps++;
         this.stepLabel.setText(String.format("行军步数：%d", this.steps));
     }
 
+    // 设置标签（行军步数和倒计时）
     public void setLabel(JLabel stepLabel, JLabel countdownLabel) {
         this.stepLabel = stepLabel;
         this.countdownLabel = countdownLabel;
     }
 
+    // AI移动
     public void AIMove(int row, int col, Direction direction) {
         for (BoxComponent box : boxes) {
             if (box.getRow() == row && box.getCol() == col) {
                 selectedBox = box;
-                System.out.println("AI Move box: (" + row + ", " + col + ") " + direction);
-                if (controller.doMove(box.getRow(), box.getCol(), direction)) afterMove();
+                System.out.print("AI" + "向" + (direction == Direction.UP ? "上" : (direction == Direction.DOWN ? "下" : (direction == Direction.LEFT ? "左" : "右"))) + ": ");
+                if (controller.doMove(box.getRow(), box.getCol(), direction)) afterMove(); // 更新步数
                 break;
             }
         }
     }
 
     public void setController(GameController controller) {
-        this.controller = controller;
+        this.controller = controller; // 设置控制器
     }
 
     public BoxComponent getSelectedBox() {
-        return selectedBox;
+        return selectedBox; // 获取被选中的方块
     }
 
     public int getGRID_SIZE() {
-        return GRID_SIZE;
+        return GRID_SIZE; // 获取网格大小
     }
 }

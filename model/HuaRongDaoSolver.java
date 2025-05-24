@@ -14,10 +14,10 @@ public class HuaRongDaoSolver {
         System.out.println("开始搜索");
         while (!openSet.isEmpty()) {
             State current = openSet.poll();
-            if(closedSet.size()%1000 == 0) {
-                System.out.println("当前步数: " + current.steps+" 当前检查过的状态数: " + closedSet.size()+" 当前打开的状态数: " + openSet.size());
+            if (closedSet.size() % 1000 == 0) {
+                System.out.println("当前步数: " + current.steps + " 当前检查过的状态数: " + closedSet.size() + " 当前打开的状态数: " + openSet.size());
             }
-            if (current.board[4][1] == 4&&current.board[4][2] == 4) {
+            if (current.board[4][1] == 4 && current.board[4][2] == 4) {
                 System.out.println("找到解");
                 return reconstructPath(current);
             }
@@ -43,6 +43,7 @@ public class HuaRongDaoSolver {
         return Collections.emptyList(); // 无解
     }
 
+    // 检查是否在矩阵范围内
     private boolean checkInSize(int[][] matrix, int row, int col) {
         return row >= 0 && row < matrix.length && col >= 0 && col < matrix[0].length;
     }
@@ -86,7 +87,7 @@ public class HuaRongDaoSolver {
         return neighbors;
     }
 
-
+    // 检查移动是否合法，类似于GameController.doMove()
     public boolean checkMove(int[][] board, int row, int col, Direction direction) {
         int nextRow = row + direction.getRow();
         int nextCol = col + direction.getCol();
@@ -156,11 +157,12 @@ public class HuaRongDaoSolver {
         return false;
     }
 
+    // 索引化棋盘，将每个点所在块的左上角坐标作为索引存储在一个新的二维数组中
     private int[][] indexBoard(int[][] board) {
         int[][] indexBoard = new int[board.length][board[0].length];
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-                if ( board[i][j] != 0) {
+                if (board[i][j] != 0) {
                     int index = i * board[0].length + j;
                     if (board[i][j] == 1) {
                         board[i][j] = 0;
@@ -191,14 +193,13 @@ public class HuaRongDaoSolver {
         return indexBoard;
     }
 
-    // 回溯路径
+    // 回溯路径，返回一个包含所有移动的列表
     private List<AIMovement> reconstructPath(State state) {
         LinkedList<AIMovement> path = new LinkedList<>();
-        while (state != null&&state.direction!=null) {
+        while (state != null && state.direction != null) {
             path.addFirst(new AIMovement(state.row, state.col, state.direction));
             state = state.parent;
         }
         return path;
     }
-
 }
