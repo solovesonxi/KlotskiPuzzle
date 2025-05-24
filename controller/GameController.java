@@ -23,7 +23,7 @@ public class GameController {
     public final MapModel model;
     private final ArrayList<String> history = new ArrayList<>();
     private int count = 0;
-    private final String user;
+    public final String user;
     private final String difficulty;
     private final int[][] initialMatrix;
 
@@ -37,6 +37,7 @@ public class GameController {
         history.add(getHistory(null));
     }
 
+    // 深拷贝一个新的二维数组
     public static int[][] deepCopy(int[][] original) {
         if (original == null) {
             return null;
@@ -48,6 +49,7 @@ public class GameController {
         return copy;
     }
 
+    // 重置游戏状态
     public void restartGame() {
         System.out.println("重新游戏");
         model.updateMatrix(deepCopy(initialMatrix));
@@ -56,6 +58,7 @@ public class GameController {
         view.initialGame(0, 180);
     }
 
+    // 获取当前历史记录的字符串表示
     private String getHistory(int[][] matrix) {
         if (matrix == null) {
             matrix = model.getMatrix();
@@ -70,6 +73,7 @@ public class GameController {
         return sb.toString();
     }
 
+    // 从历史记录字符串中获取二维数组
     private int[][] getMatrixFromHistory(String history) {
         if (history == null || history.isEmpty()) {
             return null;
@@ -90,6 +94,7 @@ public class GameController {
         return matrix;
     }
 
+    // 判断移动操作是否合法并执行
     public boolean doMove(int row, int col, Direction direction) {
         int nextRow = row + direction.getRow();
         int nextCol = col + direction.getCol();
@@ -164,6 +169,7 @@ public class GameController {
         return false;
     }
 
+    // 连续移动动画
     private void continueMove(int nextRow, int nextCol) {
         BoxComponent box = view.getSelectedBox();
         int startRow = box.getRow();
@@ -173,7 +179,7 @@ public class GameController {
         int totalFrames = 10;
         count = 0;
         playSoundEffect("resources/audio/sound_effect/move.wav");
-        new Timer(1, e -> {
+        new Timer(1, e -> { // 使用Timer实现动画效果
             if (count < totalFrames) {
                 double progress = (double) count / totalFrames;
                 progress = 1 - (1 - progress) * (1 - progress);
@@ -192,6 +198,7 @@ public class GameController {
         }).start();
     }
 
+    // 播放音效
     public void playSoundEffect(String filePath) {
         try {
             Clip soundEffectClip = AudioSystem.getClip();
@@ -202,13 +209,14 @@ public class GameController {
         }
     }
 
+    // 检查游戏是否结束
     public void endGame(boolean check) {
         if (!check || model.getId(4, 1) == 4 && model.getId(4, 2) == 4) {
             view.countdownTimer.stop();
             if (check) {
                 playSoundEffect("resources/audio/sound_effect/victory.wav");
                 if (user != null&&"决胜千里".equals(difficulty)) saveLeaderBoard();
-            } else {
+            } else { // 倒计时结束不需要检查，直接游戏失败
                 playSoundEffect("resources/audio/sound_effect/defeat.wav");
             }
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(view, "是否重新开始游戏？", check ? ("恭喜你过关了！共用了" + view.steps + "步！") : ("倒计时为0，游戏失败！"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
@@ -264,6 +272,10 @@ public class GameController {
             String path = "resources/history/" + user + ".txt";
             BufferedReader br = new BufferedReader(new FileReader(path));
             String line = br.readLine();
+            if(line == null || line.isEmpty()) {
+                JOptionPane.showMessageDialog(view, user+"还没有保存过历史游戏数据");
+                return;
+            }
             int steps = 0;
             int countdown = 0;
             ArrayList<String> newHistory = new ArrayList<>();
@@ -342,16 +354,17 @@ public class GameController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         return matrix;
     }
 
+    // 保存游戏进度
     public void saveGame() {
         try {
             File file = new File("resources/history/" + user + ".txt");
-            if (!file.exists()) {
+            if (!file.exists()) { // 不存在则创建文件
                 file.createNewFile();
             }
+            // 步数 + 倒计时 + 多行历史记录
             StringBuilder sb = new StringBuilder(view.steps + " " + view.countdownLabel.getText().split("：")[1].split("息")[0] + "\n");
             for (String hist : history) {
                 sb.append(hist).append(" ").append(encode(getMatrixFromHistory(hist))).append("\n");

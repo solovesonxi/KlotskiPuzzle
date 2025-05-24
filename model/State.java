@@ -23,8 +23,6 @@ class State implements Comparable<State> {
         this.direction = direction;
     }
 
-
-
     // 计算启发式估值（曼哈顿距离）
     private int calculateHeuristic() {
         int targetRow = 3, targetCol = 1; // 目标位置（出口）

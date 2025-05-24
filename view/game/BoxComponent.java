@@ -6,17 +6,17 @@ import java.awt.*;
 
 // 游戏方块组件
 public class BoxComponent extends JComponent {
-    private final Image image;
-    private int row;
-    private int col;
-    private boolean isSelected;
+    private final Image image; // 方块图像
+    private int row; // 行坐标
+    private int col; // 列坐标
+    private boolean isSelected; // 是否被选中
 
     // 以该方块左上角的坐标为准
     public BoxComponent(String path, int row, int col) {
-        this.image =  Toolkit.getDefaultToolkit().getImage("resources/image/"+path);
+        this.image =  Toolkit.getDefaultToolkit().getImage("resources/image/"+path); // 加载图像
         this.row = row;
         this.col = col;
-        isSelected = false;
+        isSelected = false; // 初始状态为未选择
     }
 
     @Override
@@ -27,16 +27,17 @@ public class BoxComponent extends JComponent {
         g.drawImage(image, x, y, this);
         Border border;
         if (isSelected) {
-            border = BorderFactory.createLineBorder(Color.YELLOW, 4);
+            border = BorderFactory.createLineBorder(Color.YELLOW, 4); // 选中时边框颜色
         } else {
-            border = BorderFactory.createLineBorder(Color.DARK_GRAY, 1);
+            border = BorderFactory.createLineBorder(Color.DARK_GRAY, 1); // 未选中时边框颜色
         }
         this.setBorder(border);
     }
 
+    // 设置选中状态
     public void setSelected(boolean selected) {
         isSelected = selected;
-        this.repaint();
+        this.repaint(); // 刷新面板
     }
 
     public int getRow() {
