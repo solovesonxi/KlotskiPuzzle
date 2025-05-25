@@ -22,9 +22,7 @@ public class BoxComponent extends JComponent {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int x = (getWidth() - image.getWidth(null)) / 2;
-        int y = (getHeight() - image.getHeight(null)) / 2;
-        g.drawImage(image, x, y, this);
+        g.drawImage(image, 0, 0, this);
         Border border;
         if (isSelected) {
             border = BorderFactory.createLineBorder(Color.YELLOW, 4); // 选中时边框颜色

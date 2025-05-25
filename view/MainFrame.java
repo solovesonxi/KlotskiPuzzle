@@ -54,41 +54,44 @@ public class MainFrame extends JFrame implements WindowListener {
     }
 
     @Override
-    public void windowOpened(WindowEvent e) {}
+    public void windowOpened(WindowEvent e) {
+    }
 
     // 窗口关闭事件处理
     @Override
     public void windowClosing(WindowEvent e) {
-        if (controlPanel != null && controlPanel.isVisible() && controlPanel.controller != null) {
-            if (controlPanel.controller.user == null) { // 如果没有登录用户，直接关闭
-                dispose();
+        if (controlPanel != null && controlPanel.isVisible() && controlPanel.controller != null && controlPanel.controller.user != null) {
+            int choice = JOptionPane.showConfirmDialog(this, "是否保存游戏？", "退出游戏", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (JOptionPane.YES_OPTION == choice) {
+                controlPanel.controller.saveGame();
                 System.exit(0);
-            } else { // 如果有登录用户，询问是否保存游戏
-                int choice = JOptionPane.showConfirmDialog(this, "是否保存游戏？", "退出游戏", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-                if (JOptionPane.YES_OPTION == choice) {
-                    controlPanel.controller.saveGame();
-                    System.exit(0);
-                } else if (JOptionPane.NO_OPTION == choice) {
-                    System.exit(0);
-                }
+            } else if (JOptionPane.NO_OPTION == choice) {
+                System.exit(0);
             }
+        } else {
+            System.exit(0);
         }
     }
 
     @Override
-    public void windowClosed(WindowEvent e) {}
+    public void windowClosed(WindowEvent e) {
+    }
 
     @Override
-    public void windowIconified(WindowEvent e) {}
+    public void windowIconified(WindowEvent e) {
+    }
 
     @Override
-    public void windowDeiconified(WindowEvent e) {}
+    public void windowDeiconified(WindowEvent e) {
+    }
 
     @Override
-    public void windowActivated(WindowEvent e) {}
+    public void windowActivated(WindowEvent e) {
+    }
 
     @Override
-    public void windowDeactivated(WindowEvent e) {}
+    public void windowDeactivated(WindowEvent e) {
+    }
 
     // 显示登录面板
     public void showLogin() {
