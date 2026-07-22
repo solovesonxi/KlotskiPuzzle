@@ -41,9 +41,10 @@ public class ControlPanel extends JPanel {
     private final JButton rightBtn; // 右按钮
     private boolean AIEnabled = false; // AI启用状态
     private Timer AIMoveTimer; // AI移动计时器
-    private SwingWorker<List<AIMovement>, Void> aiWorker;
+    private SwingWorker<HuaRongDaoSolver.Result, Void> aiWorker;
     private final Timer focusTimer;
     private boolean disposed;
+    private long aiTaskGeneration;
 
     // 控制面板构造函数
     public ControlPanel(MainFrame mainFrame, int width, int height, JButton last, JButton next, JButton sound, MapModel mapModel, String user, Difficulty difficulty) {
@@ -154,10 +155,19 @@ public class ControlPanel extends JPanel {
             AIEnabled = true;
             setButtons(false); // 由AI接管，应该禁用其他按钮
             int[][] boardSnapshot = BoardRules.copy(controller.model.getMatrix());
+            long taskGeneration = ++aiTaskGeneration;
             aiWorker = new SwingWorker<>() {
                 @Override
-                protected List<AIMovement> doInBackground() {
-                    return solver.solve(boardSnapshot);
+                protected HuaRongDaoSolver.Result doInBackground() {
+                    return solver.solveDetailed(
+                            boardSnapshot,
+                            HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES,
+                            (expanded, discovered) -> SwingUtilities.invokeLater(() -> {
+                                if (!disposed && AIEnabled && taskGeneration == aiTaskGeneration) {
+                                    AIBtn.setText(formatSearchCount(discovered));
+                                    AIBtn.setToolTipText("已展开 " + expanded + "，已发现 " + discovered);
+                                }
+                            }));
                 }
 
                 @Override
@@ -166,7 +176,7 @@ public class ControlPanel extends JPanel {
                         return;
                     }
                     try {
-                        startAiPlayback(new ArrayList<>(get()));
+                        handleSolveResult(get());
                     } catch (CancellationException exception) {
                         stopAI();
                     } catch (InterruptedException exception) {
@@ -183,6 +193,20 @@ public class ControlPanel extends JPanel {
         }
     }
 
+    private void handleSolveResult(HuaRongDaoSolver.Result result) {
+        String metrics = String.format("（展开 %,d，发现 %,d）",
+                result.expandedStates(), result.discoveredStates());
+        AIBtn.setToolTipText(metrics);
+        switch (result.status()) {
+            case SOLVED -> startAiPlayback(new ArrayList<>(result.moves()));
+            case ALREADY_SOLVED -> restoreAfterAiError("当前棋局已经完成" + metrics);
+            case NO_SOLUTION -> restoreAfterAiError("当前棋局没有可行解" + metrics);
+            case CANCELLED -> stopAI();
+            case STATE_LIMIT_REACHED -> restoreAfterAiError(
+                    "搜索达到状态上限 " + HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES + metrics);
+        }
+    }
+
     private void startAiPlayback(List<AIMovement> solved) {
         if (disposed) {
             return;
@@ -196,6 +220,7 @@ public class ControlPanel extends JPanel {
         AIMoveTimer = new Timer(500, e -> {
             if (solved.isEmpty()) {
                 AIBtn.setText("军师献策");
+                AIBtn.setToolTipText(null);
                 AIEnabled = false;
                 setButtons(true);
                 ((Timer) e.getSource()).stop();
@@ -214,12 +239,14 @@ public class ControlPanel extends JPanel {
         }
         AIBtn.setEnabled(true);
         AIBtn.setText("军师献策");
+        AIBtn.setToolTipText(null);
         AIEnabled = false;
         setButtons(true);
         JOptionPane.showMessageDialog(this, message);
     }
 
     private void stopAI() {
+        aiTaskGeneration++;
         if (aiWorker != null && !aiWorker.isDone()) {
             aiWorker.cancel(true);
         }
@@ -229,8 +256,19 @@ public class ControlPanel extends JPanel {
             AIMoveTimer = null;
         }
         AIBtn.setText("军师献策");
+        AIBtn.setToolTipText(null);
         AIEnabled = false;
         setButtons(true);
+    }
+
+    private static String formatSearchCount(int discoveredStates) {
+        if (discoveredStates >= 100_000) {
+            return "推演 " + discoveredStates / 1_000 + "k";
+        }
+        if (discoveredStates >= 1_000) {
+            return String.format("推演 %.1fk", discoveredStates / 1_000.0);
+        }
+        return "推演 " + discoveredStates;
     }
 
     // 设置按钮状态

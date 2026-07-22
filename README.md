@@ -1,3 +1,8 @@
+<p align="right">
+  <a href="README.md"><img alt="简体中文" src="https://img.shields.io/badge/语言-简体中文-c0392b?style=flat-square"></a>
+  <a href="README_EN.md"><img alt="English" src="https://img.shields.io/badge/Language-English-6e7781?style=flat-square"></a>
+</p>
+
 # KlotskiPuzzle
 
 [![CI](https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml/badge.svg)](https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml)
@@ -31,7 +36,7 @@
 | 桌面界面 | Swing | 原项目就是本地桌面游戏，无需引入额外 UI 框架 |
 | 构建 | Maven | 统一编译、测试、资源打包和可执行 JAR 生成 |
 | 游戏规则 | `model.BoardRules`、`model.Difficulty` | 玩家操作和求解器共用规则；实际棋局入口校验 5×4 尺寸、棋子形状与数量 |
-| 自动求解 | A*、`PriorityQueue`、最优已知步数表 | 为“军师献策”功能生成可回放路径 |
+| 自动求解 | A*、`PriorityQueue`、最优已知步数表、状态上限 | 返回可回放路径、求解状态和搜索指标，避免自定义死局无限占用内存 |
 | Swing 并发 | `SwingWorker`、`Swing Timer` | 搜索不阻塞事件线程，动画仍在 EDT 执行 |
 | 背景音乐 | 单线程 `BackgroundMusicPlayer` | 串行处理暂停、切歌和自然续播，并关闭旧音频流与 `Clip` |
 | 本地数据 | 用户目录、PBKDF2、临时文件替换 | 延续本地玩家功能，避免明文密码和源码目录写入 |
@@ -106,13 +111,13 @@ KlotskiPuzzle/
 mvn clean verify
 ```
 
-当前测试覆盖四类棋子的合法/非法移动、实际棋盘完整性、模型防御性复制、三个内置布局的限时求解与路径回放、胜利状态、本地密码哈希、排行榜容错和打包资源；登录背景测试还会确认优化后的 GIF 仍包含多帧。CI 使用 Temurin JDK 22。
+当前 23 项测试覆盖四类棋子的合法/非法移动、实际棋盘完整性、模型防御性复制、三个内置布局的限时求解与路径回放、求解完成/无解/取消/超限状态、本地密码哈希、排行榜容错和打包资源；登录背景测试还会确认优化后的 GIF 仍包含多帧。CI 使用 Temurin JDK 22。
 
 ## 已知限制
 
 - 当前可执行 JAR 约 68.3 MiB；登录页仍播放完整 35 秒动画，但打包版本采用 768×432、8 FPS、64 色的优化 GIF。仓库通过 Git LFS 保留约 308 MiB 的 1080p 原始素材，原文件不重复打入 JAR；
-- 三个内置布局已有 5 秒求解回归门槛和路径合法性检查，但尚未记录展开状态数、峰值内存和最优步数基准；
-- AI 搜索可以手动取消，但尚未提供搜索进度和状态数量上限；
+- 三个内置布局已有 5 秒求解回归门槛、路径合法性检查和展开/发现状态指标，但尚未建立峰值内存与最优步数基准；
+- AI 推演按钮会显示已发现状态数，默认最多保留 250,000 个状态；达到上限时会停止并给出独立提示，而不是误报为无解；
 - Swing 界面使用固定窗口和绝对坐标，小屏幕与高 DPI 适配有限；
 - 榜单和存档仍使用本地文本格式，不提供跨设备同步；
 - 本地登录只服务单机档案，不应视为服务端身份认证方案；
