@@ -69,8 +69,16 @@ public class GamePanel extends ListenerPanel {
             }
         }
         // 绘制四种方块
-        List<String> fiveTiggerImages = new ArrayList<>(Arrays.asList("马超.png", "张飞.png", "赵云.png", "黄忠.png"));
-        List<String> soldierImages = new ArrayList<>(Arrays.asList("小兵1.png", "小兵2.png", "小兵3.png", "小兵4.png"));
+        List<String> verticalPieceImages = new ArrayList<>(Arrays.asList(
+                "resources/original/image/pieces/vertical-general-1.png",
+                "resources/original/image/pieces/vertical-general-2.png",
+                "resources/original/image/pieces/vertical-general-3.png",
+                "resources/original/image/pieces/vertical-general-4.png"));
+        List<String> soldierImages = new ArrayList<>(Arrays.asList(
+                "resources/original/image/pieces/soldier-1.png",
+                "resources/original/image/pieces/soldier-2.png",
+                "resources/original/image/pieces/soldier-3.png",
+                "resources/original/image/pieces/soldier-4.png"));
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map[0].length; j++) {
                 BoxComponent box = null;
@@ -79,19 +87,19 @@ public class GamePanel extends ListenerPanel {
                     box.setSize(GRID_SIZE, GRID_SIZE);
                     map[i][j] = 0;
                 } else if (map[i][j] == 2) {
-                    box = new BoxComponent("关羽.png", i, j); // 创建关羽方块
+                    box = new BoxComponent("resources/original/image/pieces/horizontal-general.png", i, j);
                     box.setSize(GRID_SIZE * 2, GRID_SIZE);
                     map[i][j] = 0;
                     map[i][j + 1] = 0; // 占用两个格子
                 } else if (map[i][j] == 3) {
-                    if (!fiveTiggerImages.isEmpty()) {
-                        box = new BoxComponent(fiveTiggerImages.removeFirst(), i, j); // 创建五虎方块
+                    if (!verticalPieceImages.isEmpty()) {
+                        box = new BoxComponent(verticalPieceImages.removeFirst(), i, j);
                         box.setSize(GRID_SIZE, GRID_SIZE * 2);
                         map[i][j] = 0;
                         map[i + 1][j] = 0; // 占用两个格子
                     }
                 } else if (map[i][j] == 4) {
-                    box = new BoxComponent("曹操.png", i, j); // 创建曹操方块
+                    box = new BoxComponent("resources/original/image/pieces/commander.png", i, j);
                     box.setSize(GRID_SIZE * 2, GRID_SIZE * 2); // 占用四个格子
                     map[i][j] = 0;
                     map[i + 1][j] = 0;

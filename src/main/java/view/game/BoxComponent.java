@@ -14,8 +14,8 @@ public class BoxComponent extends JComponent {
     private boolean isSelected; // 是否被选中
 
     // 以该方块左上角的坐标为准
-    public BoxComponent(String path, int row, int col) {
-        this.image = Toolkit.getDefaultToolkit().getImage(AppResources.url("resources/image/" + path)); // 加载图像
+    public BoxComponent(String resourcePath, int row, int col) {
+        this.image = Toolkit.getDefaultToolkit().getImage(AppResources.url(resourcePath)); // 加载图像
         this.row = row;
         this.col = col;
         isSelected = false; // 初始状态为未选择

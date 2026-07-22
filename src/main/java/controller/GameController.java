@@ -1,213 +1,165 @@
 package controller;
 
-import data.AppData;
+import data.GameSaveRepository;
 import data.LeaderboardRepository;
 import model.BoardRules;
 import model.Direction;
 import model.Difficulty;
 import model.MapModel;
-import util.AppResources;
+import util.SoundEffectPlayer;
 import view.game.BoxComponent;
 import view.game.GamePanel;
 
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.*;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
-/*它是将 GamePanel（view） 和 MapMatrix（model） 组合在一个游戏中的桥梁。您可以在此类中设计有关游戏逻辑的多种方法。*/
-public class GameController {
+/** Coordinates player input, movement animation, and the current game session. */
+public final class GameController {
+    private static final String MOVE_SOUND =
+            "resources/original/audio/sound-effect/move.wav";
+    private static final String VICTORY_SOUND =
+            "resources/original/audio/sound-effect/victory.wav";
+    private static final String DEFEAT_SOUND =
+            "resources/original/audio/sound-effect/defeat.wav";
+
     private final GamePanel view;
     public final MapModel model;
-    private final ArrayList<String> history = new ArrayList<>();
+    private final List<int[][]> history = new ArrayList<>();
+    private final Difficulty difficulty;
+    private final int[][] initialMatrix;
+    private final GameSaveRepository saves;
+    private final LeaderboardRepository leaderboard;
+    private final SoundEffectPlayer soundEffects;
+    public final String user;
+
     private boolean animating;
     private boolean disposed;
     private Timer movementTimer;
-    public final String user;
-    private final Difficulty difficulty;
-    private final int[][] initialMatrix;
 
     public GameController(GamePanel view, MapModel model, String user, Difficulty difficulty) {
+        this(view, model, user, difficulty, new GameSaveRepository(), null);
+    }
+
+    GameController(GamePanel view, MapModel model, String user, Difficulty difficulty,
+                   GameSaveRepository saves, LeaderboardRepository leaderboard) {
         this.view = view;
         this.model = model;
         this.user = user;
         this.difficulty = difficulty;
-        this.initialMatrix = deepCopy(model.getMatrix());
+        this.saves = saves;
+        this.leaderboard = leaderboard;
+        this.initialMatrix = BoardRules.copy(model.getMatrix());
+        this.soundEffects = new SoundEffectPlayer(message -> SwingUtilities.invokeLater(
+                () -> JOptionPane.showMessageDialog(view, message)));
         view.setController(this);
-        history.add(getHistory(null));
+        history.add(BoardRules.copy(model.getMatrix()));
     }
 
-    // 深拷贝一个新的二维数组
-    public static int[][] deepCopy(int[][] original) {
-        if (original == null) {
-            return null;
-        }
-        return BoardRules.copy(original);
-    }
-
-    // 重置游戏状态
     public void restartGame() {
         if (!ensureIdle()) {
             return;
         }
-        System.out.println("重新游戏");
-        model.updateMatrix(deepCopy(initialMatrix));
+        model.updateMatrix(BoardRules.copy(initialMatrix));
         history.clear();
-        history.add(getHistory(null));
+        history.add(BoardRules.copy(initialMatrix));
         view.initialGame(0, 180);
     }
 
-    // 获取当前历史记录的字符串表示
-    private String getHistory(int[][] matrix) {
-        if (matrix == null) {
-            matrix = model.getMatrix();
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int[] ints : matrix) {
-            for (int anInt : ints) {
-                sb.append(anInt).append(",");
-            }
-            sb.append(";");
-        }
-        return sb.toString();
-    }
-
-    // 从历史记录字符串中获取二维数组
-    private int[][] getMatrixFromHistory(String history) {
-        if (history == null || history.isEmpty()) {
-            return null;
-        }
-        String[] rows = history.split(";");
-        int[][] matrix = new int[rows.length][];
-        for (int i = 0; i < rows.length; i++) {
-            String[] cols = rows[i].split(",");
-            matrix[i] = new int[cols.length];
-            for (int j = 0; j < cols.length; j++) {
-                try {
-                    matrix[i][j] = Integer.parseInt(cols[j].trim());
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    return null;
-                }
-            }
-        }
-        try {
-            BoardRules.validateGameBoard(matrix);
-            return matrix;
-        } catch (IllegalArgumentException exception) {
-            return null;
-        }
-    }
-
-    // 判断移动操作是否合法并执行
-    public boolean doMove(int row, int col, Direction direction) {
+    public boolean doMove(int row, int column, Direction direction) {
         if (disposed || animating) {
             return false;
         }
         int nextRow = row + direction.getRow();
-        int nextCol = col + direction.getCol();
-        int[][] moved = BoardRules.applyMove(model.getMatrix(), row, col, direction);
-        if (moved != null) {
-            animating = true;
-            model.updateMatrix(moved);
-            continueMove(nextRow, nextCol);
-            return true;
+        int nextColumn = column + direction.getCol();
+        int[][] moved = BoardRules.applyMove(model.getMatrix(), row, column, direction);
+        if (moved == null) {
+            return false;
         }
-        return false;
+        animating = true;
+        model.updateMatrix(moved);
+        continueMove(nextRow, nextColumn);
+        return true;
     }
 
-    // 连续移动动画
-    private void continueMove(int nextRow, int nextCol) {
+    private void continueMove(int nextRow, int nextColumn) {
         BoxComponent box = view.getSelectedBox();
         int startRow = box.getRow();
-        int startCol = box.getCol();
-        int deltaX = (nextCol - startCol) * view.getGRID_SIZE();
+        int startColumn = box.getCol();
+        int deltaX = (nextColumn - startColumn) * view.getGRID_SIZE();
         int deltaY = (nextRow - startRow) * view.getGRID_SIZE();
         int totalFrames = 10;
         int[] frame = {0};
-        playSoundEffect("resources/audio/sound_effect/move.wav");
-        movementTimer = new Timer(1, e -> { // 使用Timer实现动画效果
+        soundEffects.play(MOVE_SOUND);
+        movementTimer = new Timer(1, event -> {
             if (frame[0] < totalFrames) {
                 double progress = (double) frame[0] / totalFrames;
                 progress = 1 - (1 - progress) * (1 - progress);
-                box.setLocation((int) (startCol * view.getGRID_SIZE() + deltaX * progress + 2), (int) (startRow * view.getGRID_SIZE() + deltaY * progress + 2));
+                box.setLocation(
+                        (int) (startColumn * view.getGRID_SIZE() + deltaX * progress + 2),
+                        (int) (startRow * view.getGRID_SIZE() + deltaY * progress + 2));
                 box.repaint();
                 frame[0]++;
-            } else {
-                ((Timer) e.getSource()).stop();
-                box.setRow(nextRow);
-                box.setCol(nextCol);
-                box.setLocation(nextCol * view.getGRID_SIZE() + 2, nextRow * view.getGRID_SIZE() + 2);
-                box.repaint();
-                history.add(getHistory(null));
-                animating = false;
-                movementTimer = null;
-                endGame(true);
+                return;
             }
+
+            ((Timer) event.getSource()).stop();
+            box.setRow(nextRow);
+            box.setCol(nextColumn);
+            box.setLocation(nextColumn * view.getGRID_SIZE() + 2,
+                    nextRow * view.getGRID_SIZE() + 2);
+            box.repaint();
+            history.add(BoardRules.copy(model.getMatrix()));
+            animating = false;
+            movementTimer = null;
+            endGame(true);
         });
         movementTimer.start();
     }
 
-    // 播放音效
-    public void playSoundEffect(String filePath) {
-        try (AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(AppResources.url(filePath))) {
-            Clip soundEffectClip = AudioSystem.getClip();
-            soundEffectClip.addLineListener(event -> {
-                if (event.getType() == LineEvent.Type.STOP) {
-                    soundEffectClip.close();
-                }
-            });
-            soundEffectClip.open(audioInputStream);
-            soundEffectClip.start();
-        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException | IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(view, "播放音效时发生错误: " + e.getMessage());
-        }
-    }
-
-    // 检查游戏是否结束
-    public void endGame(boolean check) {
-        if (!check && animating) {
-            if (movementTimer != null) {
-                movementTimer.stop();
-                movementTimer = null;
-            }
-            animating = false;
+    public void endGame(boolean checkSolved) {
+        if (!checkSolved && animating) {
+            stopMovementAnimation();
             view.initialGame(view.steps, -1);
         }
-        if (!check || BoardRules.isSolved(model.getMatrix())) {
-            view.countdownTimer.stop();
-            if (check) {
-                playSoundEffect("resources/audio/sound_effect/victory.wav");
-                if (user != null && difficulty.isRanked()) saveLeaderBoard();
-            } else { // 倒计时结束不需要检查，直接游戏失败
-                playSoundEffect("resources/audio/sound_effect/defeat.wav");
+        if (checkSolved && !BoardRules.isSolved(model.getMatrix())) {
+            return;
+        }
+
+        view.countdownTimer.stop();
+        if (checkSolved) {
+            soundEffects.play(VICTORY_SOUND);
+            if (user != null && difficulty.isRanked()) {
+                saveLeaderboardEntry();
             }
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(view, "是否重新开始游戏？", check ? ("恭喜你过关了！共用了" + view.steps + "步！") : ("倒计时为0，游戏失败！"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-                restartGame();
-            } else {
-                System.exit(0);
-            }
+        } else {
+            soundEffects.play(DEFEAT_SOUND);
+        }
+
+        String title = checkSolved
+                ? "恭喜你过关了！共用了" + view.steps + "步！"
+                : "倒计时为0，游戏失败！";
+        int choice = JOptionPane.showConfirmDialog(view, "是否重新开始游戏？", title,
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (choice == JOptionPane.YES_OPTION) {
+            restartGame();
+        } else {
+            System.exit(0);
         }
     }
 
-    // 保存战绩条目
-    private void saveLeaderBoard() {
+    private void saveLeaderboardEntry() {
         try {
-            int remainingTime = Integer.parseInt(view.countdownLabel.getText().split("：")[1].split("息")[0]);
-            new LeaderboardRepository().add(
-                    new LeaderboardRepository.ScoreEntry(user, view.steps, remainingTime));
-        } catch (IOException | IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(view, "保存战绩时发生错误: " + e.getMessage());
+            LeaderboardRepository repository = leaderboard == null
+                    ? new LeaderboardRepository()
+                    : leaderboard;
+            repository.add(new LeaderboardRepository.ScoreEntry(
+                    user, view.steps, readRemainingSeconds()));
+        } catch (IOException | IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(view, "保存战绩时发生错误: " + exception.getMessage());
         }
     }
 
@@ -215,139 +167,58 @@ public class GameController {
         if (!ensureIdle()) {
             return;
         }
-        if (history.size() > 1) {
-            history.removeLast();
-            model.updateMatrix(getMatrixFromHistory(history.getLast()));
-            view.initialGame(view.steps - 1, -1);
-        } else {
+        if (history.size() <= 1) {
             JOptionPane.showMessageDialog(view, "没有更多的撤销操作");
+            return;
         }
+        history.removeLast();
+        model.updateMatrix(BoardRules.copy(history.getLast()));
+        view.initialGame(view.steps - 1, -1);
     }
 
     public void loadGame() {
         if (!ensureIdle()) {
             return;
         }
+        if (user == null || user.isBlank()) {
+            JOptionPane.showMessageDialog(view, "请先登录");
+            return;
+        }
         try {
-            if (user == null || user.isEmpty()) {
-                JOptionPane.showMessageDialog(view, "请先登录");
+            if (!saves.exists(user)) {
+                JOptionPane.showMessageDialog(view, user + "还没有保存过历史游戏数据");
                 return;
             }
-            Path path = AppData.historyFile(user);
-            if (!Files.exists(path)) {
-                JOptionPane.showMessageDialog(view, user+"还没有保存过历史游戏数据");
-                return;
+            GameSaveRepository.SavedGame saved = saves.load(user);
+            model.updateMatrix(saved.currentBoard());
+            history.clear();
+            history.addAll(saved.history());
+            view.initialGame(saved.steps(), saved.remainingSeconds());
+            if (saved.recoveredEntries() > 0) {
+                JOptionPane.showMessageDialog(view,
+                        "已从校验副本恢复 " + saved.recoveredEntries() + " 条历史记录。");
             }
-            List<String> lines = Files.readAllLines(path);
-            if (lines.isEmpty() || lines.getFirst().isBlank()) {
-                JOptionPane.showMessageDialog(view, user+"还没有保存过历史游戏数据");
-                return;
-            }
-            int steps = 0;
-            int countdown = 0;
-            ArrayList<String> newHistory = new ArrayList<>();
-            for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
-                String line = lines.get(lineIndex);
-                String[] parts = line.split(" ");
-                if (parts.length != 2) {
-                    quarantineCorruptSave(path, "历史游戏数据格式错误，原文件已保留为损坏备份。");
-                    return;
-                }
-                if (lineIndex == 0) {
-                        steps = Integer.parseInt(parts[0]);
-                        countdown = Integer.parseInt(parts[1]);
-                } else {
-                        int[][] matrix = getMatrixFromHistory(parts[0]);
-                        int[][] newMatrix = decode(parts[1]);
-                        if (matrix != null && Arrays.deepEquals(matrix, newMatrix)) {
-                            newHistory.add(parts[0]);
-                        } else if (newMatrix != null) {
-                            newHistory.add(getHistory(newMatrix));
-                            JOptionPane.showMessageDialog(view, "第" + newHistory.size() + "行数据错误，成功启用数据恢复。");
-                        } else {
-                            quarantineCorruptSave(path, "第" + (newHistory.size() + 1) + "行无法恢复，原文件已保留为损坏备份。");
-                            return;
-                        }
-                }
-            }
-            if (!newHistory.isEmpty() && newHistory.size() == steps + 1) {
-                model.updateMatrix(getMatrixFromHistory(newHistory.getLast()));
-                history.clear();
-                history.addAll(newHistory);
-                view.initialGame(steps, countdown);
-            } else {
-                quarantineCorruptSave(path, "历史游戏数据缺失，原文件已保留为损坏备份。");
-            }
-        } catch (IOException | NumberFormatException e) {
-            JOptionPane.showMessageDialog(view, "读取文件时发生错误: " + e.getMessage());
+        } catch (GameSaveRepository.CorruptSaveException exception) {
+            JOptionPane.showMessageDialog(view,
+                    exception.getMessage() + "，原文件已保留为：\n" + exception.backupPath());
+        } catch (IOException | IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(view, "读取存档时发生错误: " + exception.getMessage());
         }
     }
 
-    private void quarantineCorruptSave(Path path, String message) throws IOException {
-        Path corrupt = path.resolveSibling(path.getFileName() + ".corrupt-" + System.currentTimeMillis());
-        Files.move(path, corrupt, StandardCopyOption.REPLACE_EXISTING);
-        JOptionPane.showMessageDialog(view, message + "\n" + corrupt);
-    }
-
-    // 编码二维数组为字符串
-    public static String encode(int[][] matrix) throws IOException {
-        BoardRules.validateGameBoard(matrix);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        dos.writeInt(matrix.length);
-        dos.writeInt(matrix[0].length);
-        for (int[] row : matrix) {
-            for (int num : row) {
-                dos.writeInt(num);
-            }
-        } // 二进制+Base64
-        return Base64.getEncoder().encodeToString(baos.toByteArray());
-    }
-
-    // 解码恢复二维数组
-    public static int[][] decode(String token) {
-        try {
-            byte[] data = Base64.getDecoder().decode(token);
-            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
-            int rows = dis.readInt();
-            int cols = dis.readInt();
-            if (rows != 5 || cols != 4) {
-                return null;
-            }
-            int[][] matrix = new int[rows][cols];
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    matrix[i][j] = dis.readInt();
-                }
-            }
-            BoardRules.validateGameBoard(matrix);
-            return matrix;
-        } catch (IOException | IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    // 保存游戏进度
     public void saveGame() {
         if (!ensureIdle()) {
             return;
         }
+        if (user == null || user.isBlank()) {
+            JOptionPane.showMessageDialog(view, "游客模式不保存本地进度");
+            return;
+        }
         try {
-            Path file = AppData.historyFile(user);
-            // 步数 + 倒计时 + 多行历史记录
-            StringBuilder sb = new StringBuilder(view.steps + " " + view.countdownLabel.getText().split("：")[1].split("息")[0] + "\n");
-            for (String hist : history) {
-                sb.append(hist).append(" ").append(encode(getMatrixFromHistory(hist))).append("\n");
-            }
-            Path temporary = file.resolveSibling(file.getFileName() + ".tmp");
-            Files.writeString(temporary, sb.toString());
-            try {
-                Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException atomicMoveUnsupported) {
-                Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(view, "保存游戏时发生错误: " + e.getMessage());
+            saves.save(user, new GameSaveRepository.SavedGame(
+                    view.steps, readRemainingSeconds(), history, 0));
+        } catch (IOException | IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(view, "保存游戏时发生错误: " + exception.getMessage());
         }
     }
 
@@ -357,11 +228,18 @@ public class GameController {
 
     public void dispose() {
         disposed = true;
-        if (movementTimer != null) {
-            movementTimer.stop();
-            movementTimer = null;
+        stopMovementAnimation();
+        soundEffects.close();
+    }
+
+    private int readRemainingSeconds() {
+        String text = view.countdownLabel.getText();
+        int separator = text.indexOf('：');
+        int suffix = text.indexOf('息');
+        if (separator < 0 || suffix <= separator) {
+            throw new IllegalArgumentException("无法读取剩余时间");
         }
-        animating = false;
+        return Integer.parseInt(text.substring(separator + 1, suffix));
     }
 
     private boolean ensureIdle() {
@@ -373,5 +251,13 @@ public class GameController {
             return false;
         }
         return true;
+    }
+
+    private void stopMovementAnimation() {
+        if (movementTimer != null) {
+            movementTimer.stop();
+            movementTimer = null;
+        }
+        animating = false;
     }
 }

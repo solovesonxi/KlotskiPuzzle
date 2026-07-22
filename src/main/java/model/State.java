@@ -2,50 +2,103 @@ package model;
 
 import java.util.Arrays;
 
-// 表示棋盘状态
-class State implements Comparable<State> {
-    int[][] board;    // 当前棋盘布局
-    int steps;        // 已走步数
-    int heuristic;    // 启发式估值
-    State parent;     // 父状态（用于回溯路径）
-    int row, col; // 当前空格位置
-    Direction direction;
+/** Immutable search node used by the A* frontier. */
+final class State implements Comparable<State> {
+    private static final int TARGET_ROW = 3;
+    private static final int TARGET_COLUMN = 1;
 
-    public State(int[][] board, int steps, State parent, int row, int col, Direction direction) {
+    private final int[][] board;
+    private final int steps;
+    private final int estimatedRemainingSteps;
+    private final int priority;
+    private final State parent;
+    private final int movedPieceRow;
+    private final int movedPieceColumn;
+    private final Direction direction;
+    private final int hashCode;
+
+    State(int[][] board, int steps, State parent, int movedPieceRow,
+          int movedPieceColumn, Direction direction) {
+        BoardRules.validateBoard(board);
+        if (steps < 0) {
+            throw new IllegalArgumentException("steps must not be negative");
+        }
         this.board = BoardRules.copy(board);
         this.steps = steps;
+        this.estimatedRemainingSteps = estimateRemainingSteps(this.board);
+        this.priority = Math.addExact(steps, estimatedRemainingSteps);
         this.parent = parent;
-        this.heuristic = calculateHeuristic();
-        this.row = row;
-        this.col = col;
+        this.movedPieceRow = movedPieceRow;
+        this.movedPieceColumn = movedPieceColumn;
         this.direction = direction;
+        this.hashCode = Arrays.deepHashCode(this.board);
     }
 
-    // 计算启发式估值（曼哈顿距离）
-    private int calculateHeuristic() {
-        int targetRow = 3, targetCol = 1; // 曹操左上角的目标位置
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[0].length; j++) {
-                if (board[i][j] == 4) {
-                    return steps + Math.abs(i - targetRow) + Math.abs(j - targetCol);
+    int[][] board() {
+        return board;
+    }
+
+    int steps() {
+        return steps;
+    }
+
+    int estimatedRemainingSteps() {
+        return estimatedRemainingSteps;
+    }
+
+    int priority() {
+        return priority;
+    }
+
+    State parent() {
+        return parent;
+    }
+
+    int movedPieceRow() {
+        return movedPieceRow;
+    }
+
+    int movedPieceColumn() {
+        return movedPieceColumn;
+    }
+
+    Direction direction() {
+        return direction;
+    }
+
+    private static int estimateRemainingSteps(int[][] board) {
+        for (int row = 0; row < board.length; row++) {
+            for (int column = 0; column < board[0].length; column++) {
+                if (board[row][column] == BoardRules.CAO_CAO) {
+                    return Math.abs(row - TARGET_ROW) + Math.abs(column - TARGET_COLUMN);
                 }
             }
         }
-        return Integer.MAX_VALUE;
+        throw new IllegalArgumentException("Board does not contain the target piece");
     }
 
     @Override
     public int compareTo(State other) {
-        return Integer.compare(this.heuristic, other.heuristic);
+        int byPriority = Integer.compare(priority, other.priority);
+        if (byPriority != 0) {
+            return byPriority;
+        }
+        int byEstimate = Integer.compare(estimatedRemainingSteps, other.estimatedRemainingSteps);
+        if (byEstimate != 0) {
+            return byEstimate;
+        }
+        return Integer.compare(other.steps, steps);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj || obj instanceof State other && Arrays.deepEquals(this.board, other.board);
+        return this == obj || obj instanceof State other
+                && hashCode == other.hashCode
+                && Arrays.deepEquals(board, other.board);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(board);
+        return hashCode;
     }
 }

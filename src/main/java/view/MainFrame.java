@@ -19,10 +19,10 @@ import java.util.List;
 // 游戏的主窗口，负责显示登录界面和游戏控制面板
 public class MainFrame extends JFrame implements WindowListener {
     private static final List<String> MUSIC_RESOURCES = List.of(
-            "resources/audio/music/欢乐斗地主.wav",
-            "resources/audio/music/寂寞作伴.wav",
-            "resources/audio/music/瞬.wav",
-            "resources/audio/music/FALLIN.wav"
+            "resources/original/audio/music/dawn-path.wav",
+            "resources/original/audio/music/woodland-steps.wav",
+            "resources/original/audio/music/quiet-strategy.wav",
+            "resources/original/audio/music/open-gate.wav"
     );
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel container = new JPanel(cardLayout);
@@ -32,7 +32,7 @@ public class MainFrame extends JFrame implements WindowListener {
     private final BackgroundMusicPlayer musicPlayer;
 
     public MainFrame(int width, int height) {
-        super("三国华容道"); // 设置窗口标题
+        super("KlotskiPuzzle · 华容道");
         this.setSize(width, height);
         this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         this.setLocationRelativeTo(null); // 窗口居中显示
@@ -43,19 +43,21 @@ public class MainFrame extends JFrame implements WindowListener {
         this.add(container); // 添加容器到窗口
 
         // 音乐播放按钮
-        soundBtn = ViewUtil.createMusicButton("resources/image/play.png", new Point(width - 135, 10));
+        soundBtn = ViewUtil.createMusicButton("resources/original/image/icons/play.png", new Point(width - 135, 10));
         soundBtn.addActionListener(event -> toggleBGM()); // 切换背景音乐
-        lastBtn = ViewUtil.createMusicButton("resources/image/last.png", new Point(width - 197, 10));
+        lastBtn = ViewUtil.createMusicButton("resources/original/image/icons/previous.png", new Point(width - 197, 10));
         lastBtn.addActionListener(event -> playTrack(false)); // 播放上一首音乐
-        ViewUtil.addButtonMouseListener(lastBtn, "resources/image/last.png");
-        nextBtn = ViewUtil.createMusicButton("resources/image/next.png", new Point(width - 75, 10));
+        ViewUtil.addButtonMouseListener(lastBtn, "resources/original/image/icons/previous.png");
+        nextBtn = ViewUtil.createMusicButton("resources/original/image/icons/next.png", new Point(width - 75, 10));
         nextBtn.addActionListener(event -> playTrack(true)); // 播放下一首音乐
-        ViewUtil.addButtonMouseListener(nextBtn, "resources/image/next.png");
+        ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
 
         musicPlayer = new BackgroundMusicPlayer(
                 loadAudioFiles(),
                 playing -> SwingUtilities.invokeLater(() -> soundBtn.setIcon(AppResources.icon(
-                        playing ? "resources/image/play.png" : "resources/image/stop.png"))),
+                        playing
+                                ? "resources/original/image/icons/pause.png"
+                                : "resources/original/image/icons/play.png"))),
                 message -> System.err.println(message));
         musicPlayer.start();
         showLogin(); // 显示登录界面

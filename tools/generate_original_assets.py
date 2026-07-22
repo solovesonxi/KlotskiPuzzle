@@ -1,0 +1,418 @@
+"""Generate the redistributable visual and audio assets used by KlotskiPuzzle.
+
+The script is deterministic and uses only Python's standard library plus Pillow.
+No downloaded images, recordings, samples, or game footage are used.
+"""
+
+from __future__ import annotations
+
+import math
+import random
+import struct
+import wave
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+
+ROOT = Path(__file__).resolve().parents[1]
+IMAGE_ROOT = ROOT / "resources" / "original" / "image"
+PIECE_ROOT = IMAGE_ROOT / "pieces"
+ICON_ROOT = IMAGE_ROOT / "icons"
+MUSIC_ROOT = ROOT / "resources" / "original" / "audio" / "music"
+EFFECT_ROOT = ROOT / "resources" / "original" / "audio" / "sound-effect"
+DOCS_ROOT = ROOT / "docs" / "assets"
+RNG = random.Random(4499)
+
+
+def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    candidates = [
+        Path("C:/Windows/Fonts/msyhbd.ttc" if bold else "C:/Windows/Fonts/msyh.ttc"),
+        Path("C:/Windows/Fonts/simhei.ttf"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc" if bold else
+             "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else
+             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return ImageFont.truetype(str(candidate), size=size)
+    return ImageFont.load_default()
+
+
+def centered_text(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str,
+                  text_font: ImageFont.ImageFont, fill: tuple[int, ...],
+                  anchor: str = "mm") -> None:
+    draw.text(xy, text, font=text_font, fill=fill, anchor=anchor)
+
+
+def vertical_gradient(size: tuple[int, int], top: tuple[int, int, int],
+                      bottom: tuple[int, int, int]) -> Image.Image:
+    width, height = size
+    image = Image.new("RGB", size)
+    pixels = image.load()
+    for y in range(height):
+        ratio = y / max(1, height - 1)
+        color = tuple(round(a + (b - a) * ratio) for a, b in zip(top, bottom))
+        for x in range(width):
+            pixels[x, y] = color
+    return image
+
+
+def add_paper_texture(image: Image.Image, amount: int = 8) -> Image.Image:
+    noise = Image.new("L", image.size)
+    noise.putdata([128 + RNG.randint(-amount, amount) for _ in range(image.width * image.height)])
+    grain = Image.merge("RGB", (noise, noise, noise))
+    return Image.blend(image.convert("RGB"), grain, 0.08)
+
+
+def make_game_background() -> None:
+    image = vertical_gradient((1280, 720), (39, 31, 27), (105, 67, 45))
+    draw = ImageDraw.Draw(image, "RGBA")
+    for x in range(-100, 1400, 120):
+        draw.line((x, 0, x - 280, 720), fill=(236, 195, 126, 12), width=3)
+    for radius, alpha in ((310, 24), (230, 20), (150, 16)):
+        draw.ellipse((640 - radius, 360 - radius, 640 + radius, 360 + radius),
+                     outline=(244, 204, 133, alpha), width=2)
+    draw.rounded_rectangle((28, 24, 1252, 696), radius=34,
+                           outline=(235, 198, 130, 80), width=3)
+    add_paper_texture(image).save(IMAGE_ROOT / "game-background.png", optimize=True)
+
+
+def make_parchment() -> None:
+    image = vertical_gradient((533, 300), (239, 217, 164), (196, 153, 91))
+    draw = ImageDraw.Draw(image, "RGBA")
+    draw.rounded_rectangle((8, 8, 524, 291), radius=24, outline=(86, 49, 25, 180), width=5)
+    for offset in (18, 26):
+        draw.rounded_rectangle((offset, offset, 532 - offset, 300 - offset), radius=18,
+                               outline=(113, 69, 36, 60), width=2)
+    for _ in range(90):
+        x = RNG.randrange(20, 513)
+        y = RNG.randrange(18, 282)
+        r = RNG.choice((1, 1, 2, 3))
+        draw.ellipse((x - r, y - r, x + r, y + r), fill=(83, 48, 26, RNG.randrange(8, 28)))
+    image.filter(ImageFilter.GaussianBlur(0.25)).save(IMAGE_ROOT / "parchment.png", optimize=True)
+
+
+def make_login_animation() -> None:
+    frames: list[Image.Image] = []
+    width, height = 960, 540
+    for frame_index in range(24):
+        image = vertical_gradient((width, height), (24, 30, 43), (100, 58, 43))
+        draw = ImageDraw.Draw(image, "RGBA")
+        moon_x, moon_y = 740, 122
+        draw.ellipse((moon_x - 64, moon_y - 64, moon_x + 64, moon_y + 64),
+                     fill=(246, 218, 157, 208))
+        draw.ellipse((moon_x - 48, moon_y - 52, moon_x + 55, moon_y + 51),
+                     fill=(255, 236, 190, 46))
+        # Slowly drifting layered hills.
+        for layer, color in enumerate(((31, 38, 43, 255), (43, 48, 45, 255), (59, 51, 43, 255))):
+            base = 342 + layer * 54
+            points = [(0, height), (0, base)]
+            for x in range(0, width + 80, 80):
+                phase = (x / 110.0) + frame_index * (0.012 + layer * 0.004)
+                y = base - 38 - 22 * math.sin(phase) - 12 * math.sin(phase * 0.47)
+                points.append((x, y))
+            points.extend(((width, height), (0, height)))
+            draw.polygon(points, fill=color)
+        # Original animated motes keep the login screen visibly alive.
+        for mote in range(34):
+            angle = (mote * 0.73 + frame_index * 0.085) % (2 * math.pi)
+            x = (mote * 157 + frame_index * (5 + mote % 3)) % (width + 80) - 40
+            y = 80 + (mote * 67) % 370 + 15 * math.sin(angle)
+            r = 2 + mote % 3
+            draw.ellipse((x - r, y - r, x + r, y + r), fill=(247, 189, 95, 85 + mote % 4 * 30))
+        draw.rounded_rectangle((92, 72, 520, 468), radius=32,
+                               fill=(26, 22, 22, 95), outline=(230, 191, 119, 80), width=2)
+        frames.append(image.quantize(colors=128, method=Image.Quantize.MEDIANCUT))
+    frames[0].save(
+        IMAGE_ROOT / "login-background.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=90,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
+def make_piece(path: Path, size: tuple[int, int], label: str,
+               top: tuple[int, int, int], bottom: tuple[int, int, int],
+               vertical: bool = False) -> None:
+    image = vertical_gradient(size, top, bottom).convert("RGBA")
+    draw = ImageDraw.Draw(image, "RGBA")
+    width, height = size
+    draw.rounded_rectangle((2, 2, width - 3, height - 3), radius=15,
+                           outline=(58, 34, 20, 255), width=4)
+    draw.rounded_rectangle((9, 9, width - 10, height - 10), radius=11,
+                           outline=(255, 230, 171, 105), width=2)
+    for x in range(16, width, 22):
+        draw.arc((x - 16, 10, x + 24, height - 10), 82, 278,
+                 fill=(72, 39, 18, 30), width=2)
+    if vertical and len(label) > 1:
+        labels = list(label)
+        text_font = font(min(44, width // 2), bold=True)
+        total = len(labels) * (text_font.size + 5)
+        start = height // 2 - total // 2 + text_font.size // 2
+        for index, character in enumerate(labels):
+            centered_text(draw, (width // 2, start + index * (text_font.size + 5)),
+                          character, text_font, (255, 244, 210, 245))
+    else:
+        text_font = font(min(56, max(28, width // max(2, len(label)))), bold=True)
+        centered_text(draw, (width // 2, height // 2), label, text_font,
+                      (255, 244, 210, 245))
+    image.save(path, optimize=True)
+
+
+def make_pieces() -> None:
+    make_piece(PIECE_ROOT / "commander.png", (200, 200), "主将", (157, 62, 46), (89, 35, 29))
+    make_piece(PIECE_ROOT / "horizontal-general.png", (200, 100), "横将", (166, 106, 45), (99, 56, 24))
+    vertical_colors = [
+        ((55, 116, 104), (27, 70, 65)),
+        ((64, 91, 140), (34, 52, 92)),
+        ((114, 82, 133), (65, 44, 80)),
+        ((136, 91, 55), (77, 49, 29)),
+    ]
+    for index, colors in enumerate(vertical_colors, 1):
+        make_piece(PIECE_ROOT / f"vertical-general-{index}.png", (100, 200),
+                   f"纵{index}", *colors, vertical=True)
+    soldier_colors = [
+        ((153, 126, 65), (88, 70, 31)),
+        ((132, 119, 79), (74, 67, 40)),
+        ((147, 105, 72), (86, 57, 37)),
+        ((108, 119, 86), (58, 70, 46)),
+    ]
+    for index, colors in enumerate(soldier_colors, 1):
+        make_piece(PIECE_ROOT / f"soldier-{index}.png", (100, 100), f"兵{index}", *colors)
+
+
+def make_icon(name: str, symbol: str) -> None:
+    image = Image.new("RGBA", (50, 50), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image, "RGBA")
+    draw.ellipse((3, 3, 47, 47), fill=(45, 35, 31, 188), outline=(235, 199, 126, 220), width=2)
+    color = (255, 235, 192, 245)
+    if symbol == "play":
+        draw.polygon(((20, 14), (20, 36), (36, 25)), fill=color)
+    elif symbol == "pause":
+        draw.rounded_rectangle((17, 14, 22, 36), 2, fill=color)
+        draw.rounded_rectangle((28, 14, 33, 36), 2, fill=color)
+    elif symbol == "previous":
+        draw.rectangle((15, 15, 19, 35), fill=color)
+        draw.polygon(((34, 14), (34, 36), (19, 25)), fill=color)
+    elif symbol == "next":
+        draw.rectangle((31, 15, 35, 35), fill=color)
+        draw.polygon(((16, 14), (16, 36), (31, 25)), fill=color)
+    image.save(ICON_ROOT / name, optimize=True)
+
+
+def board_preview(size: tuple[int, int], *, title: bool = True) -> Image.Image:
+    width, height = size
+    image = vertical_gradient(size, (27, 31, 40), (95, 57, 40)).convert("RGBA")
+    draw = ImageDraw.Draw(image, "RGBA")
+    if title:
+        centered_text(draw, (width // 2, 64), "KlotskiPuzzle", font(48, bold=True), (255, 239, 207, 255))
+        centered_text(draw, (width // 2, 110), "Java 22+  •  Swing  •  A* Solver", font(22),
+                      (226, 204, 164, 235))
+    board_height = min(height - (150 if title else 50), 390)
+    cell = board_height // 5
+    board_width = cell * 4
+    origin_x = width // 2 - board_width // 2
+    origin_y = (145 if title else 25) + max(0, (height - (145 if title else 25) - board_height) // 2)
+    draw.rounded_rectangle((origin_x - 14, origin_y - 14, origin_x + board_width + 14,
+                            origin_y + board_height + 14), radius=18,
+                           fill=(30, 25, 23, 210), outline=(232, 193, 122, 180), width=3)
+    pieces = [
+        (0, 0, 1, 2, "纵1", (48, 104, 94)), (1, 0, 2, 2, "主将", (137, 53, 43)),
+        (3, 0, 1, 2, "纵2", (58, 80, 126)), (0, 2, 1, 2, "纵3", (101, 72, 120)),
+        (1, 2, 2, 1, "横将", (150, 91, 38)), (3, 2, 1, 2, "纵4", (124, 78, 45)),
+        (0, 4, 1, 1, "兵1", (137, 111, 57)), (3, 4, 1, 1, "兵2", (116, 104, 70)),
+    ]
+    for col, row, piece_width, piece_height, label, color in pieces:
+        x0 = origin_x + col * cell + 3
+        y0 = origin_y + row * cell + 3
+        x1 = x0 + piece_width * cell - 6
+        y1 = y0 + piece_height * cell - 6
+        draw.rounded_rectangle((x0, y0, x1, y1), radius=10, fill=color + (255,),
+                               outline=(255, 231, 178, 180), width=2)
+        centered_text(draw, ((x0 + x1) // 2, (y0 + y1) // 2), label,
+                      font(max(14, cell // 4), bold=True), (255, 244, 213, 255))
+    return image
+
+
+def make_document_images() -> None:
+    preview = board_preview((900, 560))
+    preview.convert("RGB").save(DOCS_ROOT / "project-preview.png", optimize=True)
+
+    social = vertical_gradient((1280, 640), (25, 29, 38), (94, 55, 39)).convert("RGBA")
+    draw = ImageDraw.Draw(social, "RGBA")
+    centered_text(draw, (390, 190), "KlotskiPuzzle", font(64, bold=True), (255, 239, 205, 255))
+    centered_text(draw, (390, 260), "Java 22+ Swing Klotski", font(30), (230, 205, 161, 255))
+    centered_text(draw, (390, 310), "A* solver • animated playback • tests", font(24),
+                  (215, 190, 151, 235))
+    miniature = board_preview((420, 520), title=False).resize((380, 470), Image.Resampling.LANCZOS)
+    social.alpha_composite(miniature, (820, 84))
+    draw.rounded_rectangle((70, 405, 710, 515), radius=24, fill=(26, 22, 22, 100),
+                           outline=(234, 194, 122, 80), width=2)
+    centered_text(draw, (390, 452), "Runnable • Testable • Extendable", font(25, bold=True),
+                  (255, 239, 205, 255))
+    centered_text(draw, (390, 490), "github.com/44-99/KlotskiPuzzle", font(20),
+                  (221, 197, 157, 235))
+    social.convert("RGB").save(DOCS_ROOT / "social-preview.png", optimize=True)
+
+    demo_frames: list[Image.Image] = []
+    for frame_index in range(24):
+        frame = vertical_gradient((720, 450), (27, 31, 40), (95, 57, 40)).convert("RGBA")
+        overlay = ImageDraw.Draw(frame, "RGBA")
+        centered_text(overlay, (360, 40), "A* 搜索与 EDT 动画回放", font(28, bold=True),
+                      (255, 239, 207, 255))
+        cell = 62
+        origin_x, origin_y = 230, 78
+        overlay.rounded_rectangle((origin_x - 10, origin_y - 10,
+                                   origin_x + cell * 4 + 10, origin_y + cell * 5 + 10),
+                                  radius=16, fill=(27, 23, 21, 220),
+                                  outline=(233, 194, 122, 190), width=3)
+        static_pieces = [
+            (0, 0, 1, 2, "纵1", (48, 104, 94)),
+            (1, 0, 2, 2, "主将", (137, 53, 43)),
+            (3, 0, 1, 2, "纵2", (58, 80, 126)),
+            (0, 2, 1, 2, "纵3", (101, 72, 120)),
+            (3, 2, 1, 2, "纵4", (124, 78, 45)),
+            (0, 4, 1, 1, "兵1", (137, 111, 57)),
+            (3, 4, 1, 1, "兵2", (116, 104, 70)),
+        ]
+        if frame_index < 6:
+            move_progress = 0.0
+            status = "SwingWorker：搜索中"
+        elif frame_index < 13:
+            move_progress = (frame_index - 6) / 6
+            status = "Swing Timer：回放合法移动"
+        elif frame_index < 18:
+            move_progress = 1.0
+            status = "BoardRules：状态已更新"
+        else:
+            move_progress = 1 - (frame_index - 18) / 5
+            status = "可取消、可重放"
+        pieces = static_pieces + [(1, 2 + move_progress, 2, 1, "横将", (150, 91, 38))]
+        for col, row, piece_width, piece_height, label, color in pieces:
+            x0 = origin_x + col * cell + 3
+            y0 = origin_y + row * cell + 3
+            x1 = x0 + piece_width * cell - 6
+            y1 = y0 + piece_height * cell - 6
+            overlay.rounded_rectangle((x0, y0, x1, y1), radius=9, fill=color + (255,),
+                                      outline=(255, 231, 178, 180), width=2)
+            centered_text(overlay, ((x0 + x1) // 2, (y0 + y1) // 2), label,
+                          font(17, bold=True), (255, 244, 213, 255))
+        overlay.rounded_rectangle((28, 168, 198, 276), radius=18, fill=(24, 22, 22, 125),
+                                  outline=(234, 194, 122, 75), width=2)
+        centered_text(overlay, (113, 202), "1  后台求解", font(19, bold=True),
+                      (255, 239, 207, 255))
+        centered_text(overlay, (113, 239), "2  EDT 回放", font(19, bold=True),
+                      (255, 239, 207, 255))
+        centered_text(overlay, (360, 422), status, font(18), (232, 208, 168, 255))
+        demo_frames.append(frame.convert("RGB").quantize(colors=128))
+    demo_frames[0].save(DOCS_ROOT / "demo.gif", save_all=True, append_images=demo_frames[1:],
+                        duration=110, loop=0, optimize=True, disposal=2)
+
+
+def clamp_sample(value: float) -> int:
+    return max(-32767, min(32767, int(value * 32767)))
+
+
+def write_wav(path: Path, samples: list[float], rate: int = 22_050) -> None:
+    with wave.open(str(path), "wb") as stream:
+        stream.setnchannels(1)
+        stream.setsampwidth(2)
+        stream.setframerate(rate)
+        stream.writeframes(b"".join(struct.pack("<h", clamp_sample(sample)) for sample in samples))
+
+
+def envelope(position: int, note_samples: int, attack: float = 0.08, release: float = 0.18) -> float:
+    ratio = position / max(1, note_samples - 1)
+    if ratio < attack:
+        return ratio / attack
+    if ratio > 1 - release:
+        return max(0.0, (1 - ratio) / release)
+    return 1.0
+
+
+def make_track(path: Path, notes: list[int], bpm: int, waveform: str) -> None:
+    rate = 22_050
+    beats = 24
+    note_samples = int(rate * 60 / bpm)
+    samples: list[float] = []
+    for beat in range(beats):
+        midi = notes[beat % len(notes)]
+        frequency = 440.0 * (2 ** ((midi - 69) / 12))
+        for index in range(note_samples):
+            time = index / rate
+            phase = math.tau * frequency * time
+            if waveform == "bell":
+                tone = math.sin(phase) + 0.32 * math.sin(phase * 2.01) + 0.12 * math.sin(phase * 3.98)
+            elif waveform == "reed":
+                tone = math.sin(phase) + 0.22 * math.sin(phase * 3) + 0.08 * math.sin(phase * 5)
+            else:
+                tone = math.sin(phase) + 0.18 * math.sin(phase / 2)
+            bass_frequency = frequency / 2
+            bass = math.sin(math.tau * bass_frequency * time)
+            samples.append((tone * 0.13 + bass * 0.06) * envelope(index, note_samples))
+    # A short fade protects loop/skip boundaries from clicks.
+    fade = min(rate // 8, len(samples) // 2)
+    for index in range(fade):
+        factor = index / fade
+        samples[index] *= factor
+        samples[-index - 1] *= factor
+    write_wav(path, samples, rate)
+
+
+def make_effect(path: Path, frequencies: tuple[float, ...], duration: float,
+                sweep: float = 0.0, noise: float = 0.0) -> None:
+    rate = 22_050
+    total = int(rate * duration)
+    local_rng = random.Random(path.name)
+    samples: list[float] = []
+    for index in range(total):
+        time = index / rate
+        ratio = index / max(1, total - 1)
+        fade = math.sin(math.pi * ratio) ** 1.6
+        value = 0.0
+        for harmonic, frequency in enumerate(frequencies, 1):
+            current = frequency * (1 + sweep * ratio)
+            value += math.sin(math.tau * current * time) / harmonic
+        value = value / max(1, len(frequencies))
+        value += noise * (local_rng.random() * 2 - 1)
+        samples.append(value * fade * 0.42)
+    write_wav(path, samples, rate)
+
+
+def make_audio() -> None:
+    tracks = [
+        ("dawn-path.wav", [57, 60, 64, 67, 64, 60], 108, "bell"),
+        ("woodland-steps.wav", [52, 55, 59, 62, 59, 55], 116, "reed"),
+        ("quiet-strategy.wav", [50, 57, 53, 60, 57, 53], 96, "sine"),
+        ("open-gate.wav", [55, 62, 59, 67, 64, 62], 124, "bell"),
+    ]
+    for name, notes, bpm, waveform in tracks:
+        make_track(MUSIC_ROOT / name, notes, bpm, waveform)
+    make_effect(EFFECT_ROOT / "move.wav", (220, 330), 0.16, sweep=0.7, noise=0.08)
+    make_effect(EFFECT_ROOT / "victory.wav", (523.25, 659.25, 783.99), 0.92, sweep=0.05)
+    make_effect(EFFECT_ROOT / "defeat.wav", (196.0, 146.83), 0.85, sweep=-0.42, noise=0.025)
+
+
+def main() -> None:
+    for directory in (IMAGE_ROOT, PIECE_ROOT, ICON_ROOT, MUSIC_ROOT, EFFECT_ROOT, DOCS_ROOT):
+        directory.mkdir(parents=True, exist_ok=True)
+    make_game_background()
+    make_parchment()
+    make_login_animation()
+    make_pieces()
+    make_icon("play.png", "play")
+    make_icon("pause.png", "pause")
+    make_icon("previous.png", "previous")
+    make_icon("next.png", "next")
+    make_document_images()
+    make_audio()
+    print("Generated original visual and audio assets under resources/original and docs/assets.")
+
+
+if __name__ == "__main__":
+    main()

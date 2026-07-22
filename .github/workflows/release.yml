@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '22'
+          cache: maven
+      - name: Verify and package
+        run: mvn --batch-mode --no-transfer-progress clean verify
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          target/klotski-puzzle-1.0.0.jar
+          --verify-tag
+          --generate-notes
+          --title "KlotskiPuzzle ${GITHUB_REF_NAME}"

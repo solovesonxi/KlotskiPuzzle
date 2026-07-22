@@ -10,11 +10,20 @@
 
   <p>
     <a href="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml/badge.svg"></a>
+    <a href="https://github.com/44-99/KlotskiPuzzle/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/44-99/KlotskiPuzzle?display_name=tag"></a>
     <a href="https://openjdk.org/projects/jdk/22/"><img alt="Java 22+" src="https://img.shields.io/badge/Java-22%2B-orange.svg"></a>
-    <a href="LICENSE"><img alt="MIT code license" src="https://img.shields.io/badge/Code%20License-MIT-blue.svg"></a>
+    <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+    <a href="https://github.com/44-99/KlotskiPuzzle/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/44-99/KlotskiPuzzle?style=flat"></a>
   </p>
 
-  <img src="docs/assets/klotski-preview.svg" width="760" alt="Neutral KlotskiPuzzle board illustration">
+  <p>
+    <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+    <a href="CHANGELOG.md">Changelog</a> ·
+    <a href="CONTRIBUTING.md">Contributing</a> ·
+    <a href="https://github.com/44-99/KlotskiPuzzle/discussions">Discussions</a>
+  </p>
+
+  <img src="docs/assets/project-preview.png" width="760" alt="Original neutral KlotskiPuzzle board preview">
 </div>
 
 KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) that evolved from a Java GUI course project. Its primary audience is students and junior Java developers who know the language basics and want to build their first project combining a desktop UI with a search algorithm.
@@ -39,12 +48,10 @@ KlotskiPuzzle addresses these problems in one repository with explicit technical
 - JDK 22 or later;
 - Maven 3.9 or later;
 - A desktop environment capable of running Swing;
-- Git LFS to check out the animated background assets.
 
 ```bash
 git clone https://github.com/44-99/KlotskiPuzzle.git
 cd KlotskiPuzzle
-git lfs pull
 mvn clean verify
 mvn exec:java
 ```
@@ -52,7 +59,7 @@ mvn exec:java
 After building, the JAR can also be launched directly:
 
 ```bash
-java -jar target/klotski-puzzle-1.0.0-SNAPSHOT.jar
+java -jar target/klotski-puzzle-1.0.0.jar
 ```
 
 Images and audio are packaged as classpath resources, so the JAR does not depend on the process working directory.
@@ -64,15 +71,21 @@ Images and audio are packaged as classpath resources, so the JAR does not depend
 | How should multi-cell pieces move? | A matrix represents the board, while a pure Java rules layer identifies pieces and enforces collisions, bounds, and the solved state | [`BoardRules.java`](src/main/java/model/BoardRules.java) |
 | How can player and solver logic share rules? | Player actions and solver expansion both call `BoardRules.applyMove` | [`GameController.java`](src/main/java/controller/GameController.java), [`HuaRongDaoSolver.java`](src/main/java/model/HuaRongDaoSolver.java) |
 | How can A* remain bounded and observable? | `PriorityQueue`, a best-known-step map, parent reconstruction, cancellation checks, and a discovered-state limit | [`HuaRongDaoSolver.java`](src/main/java/model/HuaRongDaoSolver.java) |
-| How can Swing stay responsive? | `SwingWorker` performs search in the background and `Swing Timer` replays moves on the EDT | [`ControlPanel.java`](src/main/java/view/game/ControlPanel.java) |
+| How can Swing stay responsive? | An AI coordinator uses `SwingWorker` for search and `Swing Timer` for EDT playback | [`AiSolveCoordinator.java`](src/main/java/controller/AiSolveCoordinator.java) |
 | How does course code become a verifiable project? | Maven builds it, JUnit 5 checks rules and paths, and GitHub Actions runs continuous integration with Java 22 | [`pom.xml`](pom.xml), [`src/test/java`](src/test/java) |
-| How are local-data boundaries handled? | Player data lives under the user directory, passwords use PBKDF2, and saves and rankings use temporary-file replacement | [`data`](src/main/java/data) |
+| How are local-data boundaries handled? | Player data lives under the user directory, passwords use PBKDF2, and recoverable saves use temporary-file replacement | [`data`](src/main/java/data) |
 
 The AI execution flow is:
 
 ```text
-Board snapshot -> SwingWorker -> A* search -> Result -> Swing Timer -> BoardRules -> UI playback
+Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> BoardRules -> UI playback
 ```
+
+<p align="center">
+  <img src="docs/assets/demo.gif" width="680" alt="Programmatic demonstration of background A* search and Swing EDT playback">
+</p>
+
+This GIF is generated from the project's actual threading and movement model; it is not third-party gameplay footage.
 
 ## Playable Features
 
@@ -98,18 +111,19 @@ Player profiles, saves, and leaderboard data are stored in `${user.home}/.klotsk
 ```text
 KlotskiPuzzle/
 ├── src/main/java/
-│   ├── controller/   # Player actions, animation, saves, and completion flow
-│   ├── data/         # Local data paths and player credentials
+│   ├── controller/   # Game session plus AI search/playback lifecycle
+│   ├── data/         # Players, rankings, and recoverable saves
 │   ├── model/        # Board model, layouts, movement rules, and A* solver
 │   ├── util/         # Classpath resources and background-music lifecycle
 │   └── view/         # Swing windows and components
 ├── src/test/java/    # JUnit 5 tests
-├── resources/        # Runtime and demonstration media
-├── docs/             # Documentation and project visuals
+├── resources/original/ # Redistributable original runtime assets
+├── docs/             # Architecture notes and project visuals
+├── tools/            # Original image, GIF, music, and sound generators
 └── pom.xml           # Java 22 Maven build
 ```
 
-The source uses coarse `model`, `controller`, and `view` packages, but it is not strict MVC: the controller still owns parts of audio, saves, leaderboards, and dialogs. This makes responsibility separation a useful follow-up refactoring exercise.
+The source uses pragmatic layers rather than strict MVC. `BoardRules` is the shared boundary for player and AI moves, while save persistence, effects, AI lifecycle, and leaderboard UI have been extracted from the large controllers. See the [architecture document](docs/ARCHITECTURE.md) for responsibilities and threading details.
 
 ## Verification
 
@@ -117,20 +131,22 @@ The source uses coarse `model`, `controller`, and `view` packages, but it is not
 mvn clean verify
 ```
 
-Automated tests cover board integrity, legal and illegal movement for all four piece types, built-in layout solving and path replay, cancellation and state limits, local password hashing, leaderboard recovery, and packaged resources. A resource test also prevents the animated login GIF from silently regressing to a static image. See the CI badge at the top for the latest build result.
+Automated tests cover board integrity, legal and illegal movement for all four piece types, built-in layout solving and path replay, cancellation and state limits, search-node semantics, local password hashing, recoverable saves, leaderboard recovery, and packaged resources. A resource test also prevents the animated login GIF from silently regressing to a static image. See the CI badge at the top for the latest build result.
+
+Move counts plus expanded/discovered-state baselines for all three presets are recorded in [solver benchmarks](docs/SOLVER_BENCHMARKS.md). Performance changes should be compared under the same move definition.
 
 ## Project Boundaries
 
 - The project requires Java 22+ and targets desktop environments that support Swing;
-- A* keeps at most 250,000 discovered states by default and reports the limit explicitly. Peak-memory and optimal-move benchmarks for standard layouts have not been established yet;
+- A* keeps at most 250,000 discovered states by default and reports the limit explicitly. One move means translating one piece by one cell; the project does not claim results under every alternative counting convention;
 - The interface uses a fixed window and absolute positioning, so small-screen and high-DPI support is limited;
 - Profiles, rankings, and saves are local only; there is no server-side authentication or cross-device synchronization;
-- The current music, video/GIF, and character images have no verifiable redistribution permission. Replace them with original, CC0, or explicitly redistributable media before public demonstrations or binary releases. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+- There is no free-form level editor yet; the difficulty dialog exposes three validated presets.
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before contributing. Useful areas include solver benchmarks, GUI integration tests, responsibility separation, responsive layouts, and replacement media with documented redistribution rights.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before contributing. Useful areas include GUI integration tests, responsive layouts, a validated level editor, and deeper solver benchmarks. Use Issues for scoped work and Discussions for open-ended questions or ideas.
 
 ## License
 
-The source code is licensed under the [MIT License](LICENSE). Media under `resources/` is not automatically covered by MIT; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The source code and programmatically generated original assets are licensed under the [MIT License](LICENSE). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for generation and history-cleanup details.

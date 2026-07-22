@@ -64,14 +64,14 @@ public class HuaRongDaoSolver {
                 return new Result(Status.CANCELLED, List.of(), expandedStates, bestSteps.size());
             }
             State current = openSet.poll();
-            if (current.steps != bestSteps.getOrDefault(current, Integer.MAX_VALUE)) {
+            if (current.steps() != bestSteps.getOrDefault(current, Integer.MAX_VALUE)) {
                 continue; // A better route to the same board was queued later.
             }
             expandedStates++;
             if (expandedStates % PROGRESS_INTERVAL == 0) {
                 progressListener.onProgress(expandedStates, bestSteps.size());
             }
-            if (BoardRules.isSolved(current.board)) {
+            if (BoardRules.isSolved(current.board())) {
                 return new Result(Status.SOLVED, reconstructPath(current),
                         expandedStates, bestSteps.size());
             }
@@ -86,8 +86,8 @@ public class HuaRongDaoSolver {
                     return new Result(Status.STATE_LIMIT_REACHED, List.of(),
                             expandedStates, bestSteps.size());
                 }
-                if (knownSteps == null || neighbor.steps < knownSteps) {
-                    bestSteps.put(neighbor, neighbor.steps);
+                if (knownSteps == null || neighbor.steps() < knownSteps) {
+                    bestSteps.put(neighbor, neighbor.steps());
                     openSet.add(neighbor);
                 }
             }
@@ -97,14 +97,14 @@ public class HuaRongDaoSolver {
 
     private List<State> getNeighbors(State state) {
         List<State> neighbors = new ArrayList<>();
-        for (BoardRules.Piece piece : BoardRules.pieces(state.board)) {
+        for (BoardRules.Piece piece : BoardRules.pieces(state.board())) {
             for (Direction direction : Direction.values()) {
                 if (Thread.currentThread().isInterrupted()) {
                     return Collections.emptyList();
                 }
-                int[][] moved = BoardRules.applyMove(state.board, piece.row(), piece.col(), direction);
+                int[][] moved = BoardRules.applyMove(state.board(), piece.row(), piece.col(), direction);
                 if (moved != null) {
-                    neighbors.add(new State(moved, state.steps + 1, state,
+                    neighbors.add(new State(moved, state.steps() + 1, state,
                             piece.row(), piece.col(), direction));
                 }
             }
@@ -114,9 +114,9 @@ public class HuaRongDaoSolver {
 
     private List<AIMovement> reconstructPath(State state) {
         List<AIMovement> path = new ArrayList<>();
-        while (state != null && state.direction != null) {
-            path.add(new AIMovement(state.row, state.col, state.direction));
-            state = state.parent;
+        while (state != null && state.direction() != null) {
+            path.add(new AIMovement(state.movedPieceRow(), state.movedPieceColumn(), state.direction()));
+            state = state.parent();
         }
         Collections.reverse(path);
         return path;

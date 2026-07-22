@@ -67,7 +67,7 @@ public class CustomDifficultyDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
-                Image parchmentTexture = AppResources.icon("resources/image/parchment.png").getImage(); // 加载背景纹理
+                Image parchmentTexture = AppResources.icon("resources/original/image/parchment.png").getImage(); // 加载背景纹理
                 g2d.setPaint(new TexturePaint(new BufferedImage(parchmentTexture.getWidth(null), parchmentTexture.getHeight(null), BufferedImage.TYPE_INT_ARGB) {{
                     Graphics2D g = createGraphics();
                     g.drawImage(parchmentTexture, 0, 0, null);

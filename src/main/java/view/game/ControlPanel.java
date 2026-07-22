@@ -1,34 +1,22 @@
 package view.game;
 
+import controller.AiSolveCoordinator;
 import controller.GameController;
-import data.LeaderboardRepository;
-import data.LeaderboardRepository.ScoreEntry;
-import model.BoardRules;
-import model.AIMovement;
 import model.Difficulty;
-import model.HuaRongDaoSolver;
 import model.MapModel;
 import util.AppResources;
 import view.MainFrame;
 import view.ViewUtil;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 // 游戏控制面板，包含游戏操作按钮和状态信息
 public class ControlPanel extends JPanel {
     private final MainFrame mainFrame; // 主窗口引用
     public final GameController controller; // 游戏控制器
     private final GamePanel gamePanel; // 游戏面板
-    private final HuaRongDaoSolver solver; // AI求解器
+    private final AiSolveCoordinator aiCoordinator;
     private final JButton restartBtn; // 重启按钮
     private final JButton loadBtn; // 加载按钮
     private final JButton undoBtn; // 撤销按钮
@@ -39,12 +27,7 @@ public class ControlPanel extends JPanel {
     private final JButton downBtn; // 下按钮
     private final JButton leftBtn; // 左按钮
     private final JButton rightBtn; // 右按钮
-    private boolean AIEnabled = false; // AI启用状态
-    private Timer AIMoveTimer; // AI移动计时器
-    private SwingWorker<HuaRongDaoSolver.Result, Void> aiWorker;
     private final Timer focusTimer;
-    private boolean disposed;
-    private long aiTaskGeneration;
 
     // 控制面板构造函数
     public ControlPanel(MainFrame mainFrame, int width, int height, JButton last, JButton next, JButton sound, MapModel mapModel, String user, Difficulty difficulty) {
@@ -52,7 +35,6 @@ public class ControlPanel extends JPanel {
         this.setSize(width, height);
         this.setVisible(true);
         this.mainFrame = mainFrame;
-        this.solver = new HuaRongDaoSolver(); // 初始化AI求解器
 
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(null);
@@ -65,7 +47,7 @@ public class ControlPanel extends JPanel {
         contentPanel.add(sound);
 
         // 设置背景
-        ImageIcon originalIcon = AppResources.icon("resources/image/background.png");
+        ImageIcon originalIcon = AppResources.icon("resources/original/image/game-background.png");
         Image scaledImage = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
         JLabel backgroundLabel = new JLabel(new ImageIcon(scaledImage));
         backgroundLabel.setBounds(0, 0, width, height);
@@ -98,6 +80,8 @@ public class ControlPanel extends JPanel {
         gamePanel.setLabel(stepLabel, countdownLabel);
         gamePanel.setLocation(width / 2 - gamePanel.getWidth() / 2, height / 2 - gamePanel.getHeight() / 2-50);
         this.controller = new GameController(gamePanel, mapModel, user, difficulty);
+        this.aiCoordinator = new AiSolveCoordinator(
+                this, AIBtn, gamePanel, controller, this::setButtons);
         this.add(gamePanel);
 
         // 添加按钮事件
@@ -105,8 +89,8 @@ public class ControlPanel extends JPanel {
         loadBtn.addActionListener(event -> controller.loadGame());
         undoBtn.addActionListener(event -> controller.undo());
         logoutBtn.addActionListener(event -> showConfirmationDialog(user));
-        AIBtn.addActionListener(event -> AISolve());
-        showRankBtn.addActionListener(this::showLeaderboard);
+        AIBtn.addActionListener(event -> aiCoordinator.toggle());
+        showRankBtn.addActionListener(event -> LeaderboardDialog.show(this));
         upBtn.addActionListener(event -> gamePanel.doMoveUp());
         downBtn.addActionListener(event -> gamePanel.doMoveDown());
         leftBtn.addActionListener(event -> gamePanel.doMoveLeft());
@@ -139,138 +123,6 @@ public class ControlPanel extends JPanel {
         focusTimer.start();
     }
 
-    // AI求解器
-    private void AISolve() {
-        if (disposed) {
-            return;
-        }
-        if (!AIEnabled && controller.isAnimating()) {
-            JOptionPane.showMessageDialog(this, "请等待当前移动动画结束");
-            return;
-        }
-        if (AIEnabled)  {// 现在是AI托管状态，本次点击应该停止AI
-            stopAI();
-        } else {
-            AIBtn.setText("停止推演");
-            AIEnabled = true;
-            setButtons(false); // 由AI接管，应该禁用其他按钮
-            int[][] boardSnapshot = BoardRules.copy(controller.model.getMatrix());
-            long taskGeneration = ++aiTaskGeneration;
-            aiWorker = new SwingWorker<>() {
-                @Override
-                protected HuaRongDaoSolver.Result doInBackground() {
-                    return solver.solveDetailed(
-                            boardSnapshot,
-                            HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES,
-                            (expanded, discovered) -> SwingUtilities.invokeLater(() -> {
-                                if (!disposed && AIEnabled && taskGeneration == aiTaskGeneration) {
-                                    AIBtn.setText(formatSearchCount(discovered));
-                                    AIBtn.setToolTipText("已展开 " + expanded + "，已发现 " + discovered);
-                                }
-                            }));
-                }
-
-                @Override
-                protected void done() {
-                    if (disposed || isCancelled()) {
-                        return;
-                    }
-                    try {
-                        handleSolveResult(get());
-                    } catch (CancellationException exception) {
-                        stopAI();
-                    } catch (InterruptedException exception) {
-                        Thread.currentThread().interrupt();
-                        restoreAfterAiError("求解已中断");
-                    } catch (ExecutionException exception) {
-                        restoreAfterAiError("求解失败：" + exception.getCause().getMessage());
-                    } finally {
-                        aiWorker = null;
-                    }
-                }
-            };
-            aiWorker.execute();
-        }
-    }
-
-    private void handleSolveResult(HuaRongDaoSolver.Result result) {
-        String metrics = String.format("（展开 %,d，发现 %,d）",
-                result.expandedStates(), result.discoveredStates());
-        AIBtn.setToolTipText(metrics);
-        switch (result.status()) {
-            case SOLVED -> startAiPlayback(new ArrayList<>(result.moves()));
-            case ALREADY_SOLVED -> restoreAfterAiError("当前棋局已经完成" + metrics);
-            case NO_SOLUTION -> restoreAfterAiError("当前棋局没有可行解" + metrics);
-            case CANCELLED -> stopAI();
-            case STATE_LIMIT_REACHED -> restoreAfterAiError(
-                    "搜索达到状态上限 " + HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES + metrics);
-        }
-    }
-
-    private void startAiPlayback(List<AIMovement> solved) {
-        if (disposed) {
-            return;
-        }
-        if (solved.isEmpty()) {
-            restoreAfterAiError("当前棋局已完成或没有可行解");
-            return;
-        }
-        AIBtn.setEnabled(true);
-        AIBtn.setText("停止献策");
-        AIMoveTimer = new Timer(500, e -> {
-            if (solved.isEmpty()) {
-                AIBtn.setText("军师献策");
-                AIBtn.setToolTipText(null);
-                AIEnabled = false;
-                setButtons(true);
-                ((Timer) e.getSource()).stop();
-                AIMoveTimer = null;
-            } else {
-                AIMovement currentMove = solved.removeFirst();
-                gamePanel.AIMove(currentMove.getRow(), currentMove.getCol(), currentMove.getDirection());
-            }
-        });
-        AIMoveTimer.start();
-    }
-
-    private void restoreAfterAiError(String message) {
-        if (disposed) {
-            return;
-        }
-        AIBtn.setEnabled(true);
-        AIBtn.setText("军师献策");
-        AIBtn.setToolTipText(null);
-        AIEnabled = false;
-        setButtons(true);
-        JOptionPane.showMessageDialog(this, message);
-    }
-
-    private void stopAI() {
-        aiTaskGeneration++;
-        if (aiWorker != null && !aiWorker.isDone()) {
-            aiWorker.cancel(true);
-        }
-        aiWorker = null;
-        if (AIMoveTimer != null) {
-            AIMoveTimer.stop();
-            AIMoveTimer = null;
-        }
-        AIBtn.setText("军师献策");
-        AIBtn.setToolTipText(null);
-        AIEnabled = false;
-        setButtons(true);
-    }
-
-    private static String formatSearchCount(int discoveredStates) {
-        if (discoveredStates >= 100_000) {
-            return "推演 " + discoveredStates / 1_000 + "k";
-        }
-        if (discoveredStates >= 1_000) {
-            return String.format("推演 %.1fk", discoveredStates / 1_000.0);
-        }
-        return "推演 " + discoveredStates;
-    }
-
     // 设置按钮状态
     private void setButtons(boolean enabled) {
         gamePanel.setInputEnabled(enabled);
@@ -287,81 +139,12 @@ public class ControlPanel extends JPanel {
 
     /** Stops timers owned by this panel before it is replaced or hidden. */
     public void disposePanel() {
-        disposed = true;
         focusTimer.stop();
-        if (aiWorker != null && !aiWorker.isDone()) {
-            aiWorker.cancel(true);
-        }
-        aiWorker = null;
-        if (AIMoveTimer != null) {
-            AIMoveTimer.stop();
-            AIMoveTimer = null;
-        }
+        aiCoordinator.close();
         if (gamePanel.countdownTimer != null) {
             gamePanel.countdownTimer.stop();
         }
         controller.dispose();
-    }
-
-    // 显示排行榜数据
-    private void showLeaderboard(ActionEvent event) {
-        List<ScoreEntry> scores = readScoresFromFile(); // 读取排行榜
-        if (scores.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "排行榜为空。");
-            return;
-        }
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"排名", "用户名", "步数", "耗时"}, 0) { // 创建表格模型
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        JTable table = new JTable(model);
-        table.setRowHeight(30); // 设置行高
-        table.getTableHeader().setFont(new Font("楷体", Font.BOLD, 16)); // 设置表头字体
-        table.setFont(new Font("宋体", Font.PLAIN, 14)); // 设置表格字体
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(500, 400)); // 设置滚动面板大小
-        JButton toggleBtn = new JButton("切换为时间榜");
-        AtomicBoolean showSteps = new AtomicBoolean(true); // 切换状态
-
-        Runnable updateTable = () -> {
-            model.setRowCount(0); // 清空表格
-            scores.sort(showSteps.get()
-                    ? LeaderboardRepository.bySteps()
-                    : LeaderboardRepository.byElapsedTime());
-            for (int i = 0; i < Math.min(scores.size(), 100); i++) {
-                ScoreEntry entry = scores.get(i);
-                int timeUsed = 180 - entry.remainingTime(); // 计算用时
-                model.addRow(new Object[]{i + 1, entry.user(), entry.steps() + " 步", String.format("%d分%02d秒", timeUsed / 60, timeUsed % 60)}); // 添加行
-            }
-        };
-        toggleBtn.addActionListener(toggleEvent -> {
-            showSteps.set(!showSteps.get()); // 切换显示
-            toggleBtn.setText(showSteps.get() ? "切换为时间榜" : "切换为步数榜");
-            updateTable.run(); // 更新表格
-        });
-        updateTable.run(); // 初次更新
-        JDialog dialog = new JDialog(mainFrame, "排行榜", true); // 创建对话框
-        dialog.setLayout(new BorderLayout(10, 10));
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT)); // 顶部面板
-        topPanel.add(toggleBtn);
-        dialog.add(topPanel, BorderLayout.NORTH);
-        dialog.add(scrollPane, BorderLayout.CENTER); // 添加滚动面板
-        dialog.pack();
-        dialog.setSize(500, 600);
-        dialog.setLocationRelativeTo(this); // 中心定位
-        dialog.setVisible(true); // 显示对话框
-    }
-
-    // 从文件读取排行榜数据
-    private List<ScoreEntry> readScoresFromFile() {
-        try {
-            return new LeaderboardRepository().load();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "读取榜单时发生错误: " + e.getMessage()); // 异常处理
-            return new ArrayList<>();
-        }
     }
 
     // 显示确认对话框

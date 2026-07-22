@@ -8,7 +8,7 @@
 
 - JDK 22 或更高版本
 - Maven 3.9 或更高版本
-- Git LFS（检出动态背景素材时需要）
+- 可选：Python 3.11+ 与 Pillow（仅在重新生成原创素材时需要）
 
 ## 本地检查
 
@@ -21,7 +21,7 @@ mvn verify
 - 玩家操作与 AI 都通过 `model.BoardRules` 修改棋盘；
 - 新规则有 JUnit 测试；
 - 不提交 `target/`、`out/` 或本地玩家数据；
-- 新增或替换素材时，在 `THIRD_PARTY_NOTICES.md` 记录作者、来源 URL、许可证和署名要求；个人 VIP 下载、视频搬运和搜索结果截图不能作为可再分发授权；
+- 优先通过 `tools/generate_original_assets.py` 生成原创素材；引入外部素材时，必须在 `THIRD_PARTY_NOTICES.md` 记录作者、来源 URL、许可证和署名要求；
 - README 中的运行命令和技术声明与当前代码一致。
 
 Pull Request 请说明问题、实现思路、验证命令及结果。算法性能改动请提供相同关卡、相同 JDK 与相同硬件上的前后数据。

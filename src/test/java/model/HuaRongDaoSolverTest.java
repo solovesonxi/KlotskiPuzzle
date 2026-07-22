@@ -115,18 +115,20 @@ class HuaRongDaoSolverTest {
 
     @ParameterizedTest
     @MethodSource("builtInLayouts")
-    void solvesBuiltInLayouts(int[][] initialBoard) {
+    void matchesBuiltInLayoutBaseline(BenchmarkCase benchmark) {
         HuaRongDaoSolver.Result result = assertTimeoutPreemptively(Duration.ofSeconds(5),
                 () -> new HuaRongDaoSolver().solveDetailed(
-                        initialBoard,
+                        benchmark.difficulty().initialBoard(),
                         HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES,
                         (expanded, discovered) -> {
                         }));
         List<AIMovement> path = result.moves();
 
         assertEquals(HuaRongDaoSolver.Status.SOLVED, result.status());
-        assertTrue(result.discoveredStates() <= HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES);
-        int[][] board = BoardRules.copy(initialBoard);
+        assertEquals(benchmark.moves(), path.size());
+        assertTrue(result.expandedStates() <= benchmark.maxExpandedStates());
+        assertTrue(result.discoveredStates() <= benchmark.maxDiscoveredStates());
+        int[][] board = benchmark.difficulty().initialBoard();
         for (AIMovement movement : path) {
             board = BoardRules.applyMove(board, movement.getRow(), movement.getCol(), movement.getDirection());
             assertNotNull(board, "Solver returned an illegal move");
@@ -134,7 +136,14 @@ class HuaRongDaoSolverTest {
         assertTrue(BoardRules.isSolved(board));
     }
 
-    private static Stream<int[][]> builtInLayouts() {
-        return Stream.of(Difficulty.values()).map(Difficulty::initialBoard);
+    private static Stream<BenchmarkCase> builtInLayouts() {
+        return Stream.of(
+                new BenchmarkCase(Difficulty.BEGINNER, 23, 13_000, 16_000),
+                new BenchmarkCase(Difficulty.INTERMEDIATE, 53, 56_000, 59_000),
+                new BenchmarkCase(Difficulty.EXPERT, 116, 27_000, 27_000));
+    }
+
+    private record BenchmarkCase(Difficulty difficulty, int moves,
+                                 int maxExpandedStates, int maxDiscoveredStates) {
     }
 }

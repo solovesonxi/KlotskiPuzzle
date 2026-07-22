@@ -33,7 +33,7 @@ public class LoginPanel extends JPanel {
         contentPanel.setLayout(null); // 设置内容面板为绝对布局
         contentPanel.setBounds(0, 0, width, height);
         contentPanel.setOpaque(false); // 设置为透明
-        backgroundImage = AppResources.icon("resources/image/login-background.gif").getImage();
+        backgroundImage = AppResources.icon("resources/original/image/login-background.gif").getImage();
         this.add(contentPanel); // 添加内容面板
 
         // 创建用户名和密码输入框

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AppResourcesTest {
     @Test
     void loadsBundledResourceFromTheTestClasspath() {
-        assertNotNull(AppResources.url("resources/image/play.png"));
+        assertNotNull(AppResources.url("resources/original/image/icons/play.png"));
     }
 
     @Test
@@ -28,7 +28,7 @@ class AppResourcesTest {
 
     @Test
     void optimizedLoginBackgroundRemainsAnimated() throws Exception {
-        try (InputStream input = AppResources.url("resources/image/login-background.gif").openStream();
+        try (InputStream input = AppResources.url("resources/original/image/login-background.gif").openStream();
              ImageInputStream imageInput = ImageIO.createImageInputStream(input)) {
             Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("gif");
             assertTrue(readers.hasNext());
@@ -45,10 +45,13 @@ class AppResourcesTest {
     @Test
     void opensBundledMusicTracks() throws Exception {
         String[] tracks = {
-                "resources/audio/music/欢乐斗地主.wav",
-                "resources/audio/music/寂寞作伴.wav",
-                "resources/audio/music/瞬.wav",
-                "resources/audio/music/FALLIN.wav"
+                "resources/original/audio/music/dawn-path.wav",
+                "resources/original/audio/music/woodland-steps.wav",
+                "resources/original/audio/music/quiet-strategy.wav",
+                "resources/original/audio/music/open-gate.wav",
+                "resources/original/audio/sound-effect/move.wav",
+                "resources/original/audio/sound-effect/victory.wav",
+                "resources/original/audio/sound-effect/defeat.wav"
         };
         for (String track : tracks) {
             try (AudioInputStream stream = AudioSystem.getAudioInputStream(AppResources.url(track))) {

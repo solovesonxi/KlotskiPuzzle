@@ -6,7 +6,7 @@
 
     <groupId>io.github.44-99</groupId>
     <artifactId>klotski-puzzle</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>KlotskiPuzzle</name>
     <description>Java Swing Klotski puzzle with an A* solver</description>
 
@@ -21,14 +21,6 @@
             <resource>
                 <directory>${project.basedir}/resources</directory>
                 <targetPath>resources</targetPath>
-                <excludes>
-                    <exclude>users.txt</exclude>
-                    <exclude>leaderboard.txt</exclude>
-                    <exclude>history/**</exclude>
-                    <exclude>assets/**</exclude>
-                    <exclude>image/三国1080.gif</exclude>
-                    <exclude>audio/sound_effect/三国.WAV</exclude>
-                </excludes>
             </resource>
         </resources>
         <plugins>
@@ -36,6 +28,29 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>require-supported-toolchain</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[22,)</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>[3.9,)</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

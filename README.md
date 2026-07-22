@@ -10,11 +10,20 @@
 
   <p>
     <a href="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml/badge.svg"></a>
+    <a href="https://github.com/44-99/KlotskiPuzzle/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/44-99/KlotskiPuzzle?display_name=tag"></a>
     <a href="https://openjdk.org/projects/jdk/22/"><img alt="Java 22+" src="https://img.shields.io/badge/Java-22%2B-orange.svg"></a>
-    <a href="LICENSE"><img alt="MIT code license" src="https://img.shields.io/badge/Code%20License-MIT-blue.svg"></a>
+    <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+    <a href="https://github.com/44-99/KlotskiPuzzle/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/44-99/KlotskiPuzzle?style=flat"></a>
   </p>
 
-  <img src="docs/assets/klotski-preview.svg" width="760" alt="KlotskiPuzzle 中性华容道棋盘示意图">
+  <p>
+    <a href="docs/ARCHITECTURE.md">架构说明</a> ·
+    <a href="CHANGELOG.md">更新记录</a> ·
+    <a href="CONTRIBUTING.md">参与贡献</a> ·
+    <a href="https://github.com/44-99/KlotskiPuzzle/discussions">讨论区</a>
+  </p>
+
+  <img src="docs/assets/project-preview.png" width="760" alt="KlotskiPuzzle 原创中性棋盘视觉预览">
 </div>
 
 KlotskiPuzzle 是一个从 Java GUI 课程项目演进而来的 Java 22+ Swing 华容道参考实现。它主要面向已经掌握 Java 基础、准备完成第一个 GUI 与算法综合项目的学生和初级开发者。
@@ -39,12 +48,10 @@ KlotskiPuzzle 把这些问题放在同一个项目中解决，并保留清晰的
 - JDK 22 或更高版本；
 - Maven 3.9 或更高版本；
 - 支持 Swing 的桌面图形环境；
-- Git LFS，用于检出动态背景素材。
 
 ```bash
 git clone https://github.com/44-99/KlotskiPuzzle.git
 cd KlotskiPuzzle
-git lfs pull
 mvn clean verify
 mvn exec:java
 ```
@@ -52,7 +59,7 @@ mvn exec:java
 构建完成后也可以直接运行 JAR：
 
 ```bash
-java -jar target/klotski-puzzle-1.0.0-SNAPSHOT.jar
+java -jar target/klotski-puzzle-1.0.0.jar
 ```
 
 图片和音频作为 classpath 资源打入 JAR，运行时不依赖当前工作目录。
@@ -64,15 +71,21 @@ java -jar target/klotski-puzzle-1.0.0-SNAPSHOT.jar
 | 多格棋子如何建模和移动 | 用矩阵表示棋盘，由纯 Java 规则层统一识别棋子、碰撞、边界和胜利状态 | [`BoardRules.java`](src/main/java/model/BoardRules.java) |
 | 玩家与 AI 如何共用规则 | 玩家移动和求解器状态扩展都调用 `BoardRules.applyMove` | [`GameController.java`](src/main/java/controller/GameController.java)、[`HuaRongDaoSolver.java`](src/main/java/model/HuaRongDaoSolver.java) |
 | 如何实现可控的 A* 搜索 | 使用 `PriorityQueue`、最优已知步数表、父状态回溯、取消检查和状态上限 | [`HuaRongDaoSolver.java`](src/main/java/model/HuaRongDaoSolver.java) |
-| 如何避免 Swing 界面卡死 | `SwingWorker` 在后台搜索，`Swing Timer` 在 EDT 上逐步回放 | [`ControlPanel.java`](src/main/java/view/game/ControlPanel.java) |
+| 如何避免 Swing 界面卡死 | AI 协调器用 `SwingWorker` 后台搜索、`Swing Timer` 在 EDT 上逐步回放 | [`AiSolveCoordinator.java`](src/main/java/controller/AiSolveCoordinator.java) |
 | 如何把课程代码变成可验证工程 | Maven 统一构建，JUnit 5 验证规则与路径，GitHub Actions 使用 Java 22 持续集成 | [`pom.xml`](pom.xml)、[`src/test/java`](src/test/java) |
-| 如何处理本地数据边界 | 玩家数据写入用户目录，密码使用 PBKDF2，存档和榜单采用临时文件替换 | [`data`](src/main/java/data) |
+| 如何处理本地数据边界 | 玩家数据写入用户目录，密码使用 PBKDF2，存档可恢复并采用临时文件替换 | [`data`](src/main/java/data) |
 
 AI 执行链路可以概括为：
 
 ```text
-棋盘快照 -> SwingWorker -> A* 搜索 -> 求解结果 -> Swing Timer -> BoardRules -> 界面回放
+棋盘快照 -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> BoardRules -> 界面回放
 ```
+
+<p align="center">
+  <img src="docs/assets/demo.gif" width="680" alt="A* 后台搜索与 Swing EDT 动画回放的程序化演示">
+</p>
+
+该 GIF 是按项目真实线程与移动规则生成的流程演示，不是录制的第三方游戏画面。
 
 ## 可玩功能
 
@@ -98,18 +111,19 @@ AI 执行链路可以概括为：
 ```text
 KlotskiPuzzle/
 ├── src/main/java/
-│   ├── controller/   # 玩家操作、动画、存档与胜负流程
-│   ├── data/         # 本地数据路径与玩家凭据
+│   ├── controller/   # 游戏会话，以及 AI 搜索/回放生命周期
+│   ├── data/         # 玩家、榜单与可恢复存档
 │   ├── model/        # 棋盘模型、布局、移动规则与 A* 求解器
 │   ├── util/         # classpath 资源与背景音乐生命周期
 │   └── view/         # Swing 窗口和组件
 ├── src/test/java/    # JUnit 5 测试
-├── resources/        # 运行素材和演示文件
-├── docs/             # 文档与项目视觉素材
+├── resources/original/ # 可再分发的原创运行素材
+├── docs/             # 架构说明与项目视觉素材
+├── tools/            # 原创图片、GIF、音乐和音效生成脚本
 └── pom.xml           # Java 22 Maven 构建
 ```
 
-源码按 `model`、`controller` 和 `view` 粗粒度分包，但并非严格 MVC：控制器目前仍承担部分音频、存档、榜单和弹窗职责。这也是适合继续练习职责拆分的地方。
+源码采用务实的分层设计而非严格 MVC：`BoardRules` 是玩家与 AI 的共同规则边界；存档、音效、AI 生命周期和排行榜弹窗已经从大控制类中拆出。更完整的职责与线程说明见 [架构文档](docs/ARCHITECTURE.md)。
 
 ## 验证
 
@@ -117,20 +131,22 @@ KlotskiPuzzle/
 mvn clean verify
 ```
 
-自动化测试覆盖棋盘完整性、四类棋子的合法与非法移动、内置布局求解与路径回放、取消和状态上限、本地密码哈希、排行榜容错以及打包资源。登录背景测试还会防止动态 GIF 意外退化为静态图；最新构建结果以页面顶部的 CI 徽章为准。
+自动化测试覆盖棋盘完整性、四类棋子的合法与非法移动、内置布局求解与路径回放、取消和状态上限、求解节点语义、本地密码哈希、可恢复存档、排行榜容错以及打包资源。登录背景测试还会防止动态 GIF 意外退化为静态图；最新构建结果以页面顶部的 CI 徽章为准。
+
+三种内置布局的步数、展开状态和已发现状态基线记录在 [求解器基准](docs/SOLVER_BENCHMARKS.md) 中，性能改动应在相同计步规则下比较。
 
 ## 项目边界
 
 - 项目要求 Java 22+，只面向支持 Swing 的桌面环境；
-- A* 默认最多保留 250,000 个已发现状态，达到上限会停止并明确提示；目前尚未建立标准关卡的峰值内存和最优步数基准；
+- A* 默认最多保留 250,000 个已发现状态，达到上限会停止并明确提示；“一步”定义为一个棋子平移一格，不宣称覆盖所有计步规则；
 - 界面仍使用固定窗口和绝对坐标，小屏幕及高 DPI 适配有限；
 - 榜单、玩家和存档都是本地数据，不提供服务端认证或跨设备同步；
-- 当前音乐、视频/GIF 和英雄图片没有可验证的再分发授权。公开演示或发布二进制包前必须替换为原创、CC0 或明确允许再分发的素材，详见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+- 当前没有真正的自由关卡编辑器，难度窗口提供的是三种经过校验的预设布局。
 
 ## 参与贡献
 
-请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。适合的改进方向包括求解器基准、GUI 集成测试、职责拆分、响应式布局和合规素材替换。
+请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。适合的改进方向包括 GUI 集成测试、响应式布局、可验证的关卡编辑器和更细致的求解器基准。问题请提交到 Issues，开放式想法与使用交流请放到 Discussions。
 
 ## 许可证
 
-源代码采用 [MIT License](LICENSE)。`resources/` 中的媒体素材不自动适用 MIT，详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+源代码和仓库内程序化生成的原创素材均采用 [MIT License](LICENSE)。素材生成方式与历史清理说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

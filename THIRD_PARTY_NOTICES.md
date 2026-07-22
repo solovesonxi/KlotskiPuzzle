@@ -1,25 +1,19 @@
-# Third-party assets
+# Asset provenance and licensing
 
-The MIT license in this repository covers the project source code only. It does
-not grant any rights to the media under `resources/`.
+KlotskiPuzzle does not bundle third-party game artwork, recordings, music samples, video footage, or screenshots.
 
-## Current provenance
+## Original project assets
 
-The following information was reported by the project maintainer on 2026-07-23.
-Exact source URLs, authors, rightsholders, and redistribution permissions have
-not been recorded.
+The tracked runtime media under `resources/original/` and the raster previews under `docs/assets/` were generated specifically for this repository on 2026-07-23 by [`tools/generate_original_assets.py`](tools/generate_original_assets.py).
 
-| Paths | Reported source | Redistribution status |
-|---|---|---|
-| `resources/audio/music/*` | Tracks downloaded for offline listening with a NetEase Cloud Music VIP account | A VIP subscription is a personal playback/download entitlement, not permission to redistribute the files. Do not publish or bundle them. |
-| `resources/image/三国1080.gif`, `resources/image/login-background.gif`, `resources/assets/*.mp4` | Game videos downloaded from other creators on Bilibili; the GIFs were converted from those videos | No permission from the video creators, publishers, or game rightsholders is documented. Do not publish or bundle them. |
-| `resources/image/曹操.png`, `关羽.png`, `黄忠.png`, `马超.png`, `张飞.png`, `赵云.png`, soldier images and related backgrounds | Browser image-search results and screenshots of Honor of Kings hero artwork/posters | Search-engine availability does not grant reuse rights. Do not publish or bundle them. |
-| Remaining UI images, sound effects, fonts and screenshots | Origin not established | Treat as unlicensed until their provenance and permissions are documented. |
+- Backgrounds, chess pieces, icons, previews, and GIF frames are drawn from geometric primitives, gradients, and deterministic noise.
+- Music and sound effects are synthesized from mathematical waveforms; they contain no recorded or sampled audio.
+- The generation script may use a locally installed font to rasterize labels. No font file is copied into or distributed with the repository.
 
-Committing these files to a public source repository is itself redistribution;
-the restriction is not limited to GitHub Releases or executable JAR files.
-Before publicly promoting or distributing the project, replace the media with
-original work, CC0 assets, or assets carrying an explicit redistribution
-license, and remove unlicensed files from public history where necessary.
+These generated assets are distributed under the same [MIT License](LICENSE) as the source code. They may be used, modified, and redistributed under that license.
 
-This document records provenance and risk; it is not legal advice.
+## Removed legacy media
+
+Earlier revisions contained media whose redistribution permission could not be verified. Those files are not part of the current tree or release artifact and were removed from the repository's published Git history before the `v1.0.0` release.
+
+If a future contribution adds external media, the pull request must record its source, author, license, and redistribution terms here before the asset is merged.
