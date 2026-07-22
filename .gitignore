@@ -2,13 +2,23 @@
 *.class
 target/
 out/
+*.iml
 
 # Local agent context and implementation plans
 .agents/
 docs/plans/
+docs/drafts/
+
+# Course handouts and internal publishing drafts
+requirement.png
+Klotski Puzzle*.pdf
+docs/csdn-article-outline.md
 
 # Local player data
 .klotski-puzzle/
+resources/users.txt
+resources/leaderboard.txt
+resources/history/
 
 # Log file
 *.log
