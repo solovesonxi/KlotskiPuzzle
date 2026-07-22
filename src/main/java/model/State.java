@@ -2,8 +2,6 @@ package model;
 
 import java.util.Arrays;
 
-import static controller.GameController.deepCopy;
-
 // 表示棋盘状态
 class State implements Comparable<State> {
     int[][] board;    // 当前棋盘布局
@@ -14,7 +12,7 @@ class State implements Comparable<State> {
     Direction direction;
 
     public State(int[][] board, int steps, State parent, int row, int col, Direction direction) {
-        this.board = deepCopy(board);
+        this.board = BoardRules.copy(board);
         this.steps = steps;
         this.parent = parent;
         this.heuristic = calculateHeuristic();
@@ -25,17 +23,15 @@ class State implements Comparable<State> {
 
     // 计算启发式估值（曼哈顿距离）
     private int calculateHeuristic() {
-        int targetRow = 3, targetCol = 1; // 目标位置（出口）
-        int distance = 0;
+        int targetRow = 3, targetCol = 1; // 曹操左上角的目标位置
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
                 if (board[i][j] == 4) {
-                    distance = Math.abs(i - targetRow) + Math.abs(j - targetCol);
-                    break;
+                    return steps + Math.abs(i - targetRow) + Math.abs(j - targetCol);
                 }
             }
         }
-        return steps + distance; // A*的评估函数
+        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -45,7 +41,7 @@ class State implements Comparable<State> {
 
     @Override
     public boolean equals(Object obj) {
-        return obj.getClass().equals(this.getClass()) && Arrays.deepEquals(this.board, ((State) obj).board);
+        return this == obj || obj instanceof State other && Arrays.deepEquals(this.board, other.board);
     }
 
     @Override

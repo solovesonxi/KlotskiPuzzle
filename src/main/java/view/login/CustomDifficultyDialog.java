@@ -1,12 +1,15 @@
 package view.login;
 
+import model.Difficulty;
+import util.AppResources;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
 public class CustomDifficultyDialog extends JDialog {
-    private String selectedDifficulty; // 选择的难度
+    private Difficulty selectedDifficulty = Difficulty.BEGINNER; // 关闭对话框时使用默认难度
     private final Color DARK_BROWN = new Color(54, 35, 23); // 深棕色
     private final Color GOLD = new Color(205, 170, 109); // 金色
 
@@ -46,9 +49,9 @@ public class CustomDifficultyDialog extends JDialog {
         buttonContainer.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 50)); // 设置边界
 
         // 创建难度选择按钮
-        String[] difficulties = {"初出茅庐", "刮目相待", "运筹帷幄"};
-        for (String diff : difficulties) {
-            JButton btn = createAncientButton(diff);
+        for (Difficulty difficulty : Difficulty.values()) {
+            JButton btn = createAncientButton(difficulty.displayName());
+            btn.putClientProperty("difficulty", difficulty);
             btn.addActionListener(this::handleSelection);
             buttonPanel.add(btn);
         }
@@ -64,7 +67,7 @@ public class CustomDifficultyDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
-                Image parchmentTexture = new ImageIcon("resources/image/parchment.png").getImage(); // 加载背景纹理
+                Image parchmentTexture = AppResources.icon("resources/image/parchment.png").getImage(); // 加载背景纹理
                 g2d.setPaint(new TexturePaint(new BufferedImage(parchmentTexture.getWidth(null), parchmentTexture.getHeight(null), BufferedImage.TYPE_INT_ARGB) {{
                     Graphics2D g = createGraphics();
                     g.drawImage(parchmentTexture, 0, 0, null);
@@ -114,12 +117,12 @@ public class CustomDifficultyDialog extends JDialog {
 
     // 处理难度选择事件
     private void handleSelection(ActionEvent e) {
-        selectedDifficulty = ((JButton) e.getSource()).getText();
+        selectedDifficulty = (Difficulty) ((JButton) e.getSource()).getClientProperty("difficulty");
         dispose(); // 关闭对话框
     }
 
     // 获取选择的难度
-    public String getSelectedDifficulty() {
+    public Difficulty getSelectedDifficulty() {
         return selectedDifficulty;
     }
 }

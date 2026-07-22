@@ -7,6 +7,8 @@ import java.awt.event.MouseEvent;
 
 // ListenerPanel 是一个抽象类，继承自 JPanel，用于处理键盘和鼠标事件，被游戏面板 GamePanel 继承
 public abstract class ListenerPanel extends JPanel {
+    private boolean inputEnabled = true;
+
     public ListenerPanel() {
         enableEvents(AWTEvent.KEY_EVENT_MASK);
         enableEvents(AWTEvent.MOUSE_EVENT_MASK);
@@ -16,7 +18,7 @@ public abstract class ListenerPanel extends JPanel {
     @Override
     protected void processKeyEvent(KeyEvent e) {
         super.processKeyEvent(e);
-        if (e.getID() == KeyEvent.KEY_PRESSED) {
+        if (inputEnabled && e.getID() == KeyEvent.KEY_PRESSED) {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> doMoveRight();
                 case KeyEvent.VK_LEFT, KeyEvent.VK_A -> doMoveLeft();
@@ -28,10 +30,15 @@ public abstract class ListenerPanel extends JPanel {
     @Override
     protected void processMouseEvent(MouseEvent e) {
         super.processMouseEvent(e);
-        if (e.getID() == MouseEvent.MOUSE_CLICKED) {
+        if (inputEnabled && e.getID() == MouseEvent.MOUSE_CLICKED) {
             doMouseClick(e.getPoint());
         }
     }
+
+    public void setInputEnabled(boolean inputEnabled) {
+        this.inputEnabled = inputEnabled;
+    }
+
     public abstract void doMouseClick(Point point);
 
     public abstract void doMoveRight();

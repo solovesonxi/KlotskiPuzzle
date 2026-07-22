@@ -2,10 +2,10 @@ package model;
 
 // 地图模型类，储存棋盘的状态和操作
 public class MapModel {
-    int[][] matrix;
+    private int[][] matrix;
 
     public MapModel(int[][] matrix) {
-        this.matrix = matrix;
+        updateMatrix(matrix);
     }
 
     public int getWidth() {
@@ -21,15 +21,12 @@ public class MapModel {
     }
 
     public int[][] getMatrix() {
-        return matrix;
+        return BoardRules.copy(matrix);
     }
 
     public void updateMatrix(int[][] matrix) {
-        this.matrix = matrix;
-    }
-
-    public void set(int row, int col, int type) {
-        matrix[row][col] = type;
+        BoardRules.validateGameBoard(matrix);
+        this.matrix = BoardRules.copy(matrix);
     }
 
     public boolean isEmpty(int row, int col) {

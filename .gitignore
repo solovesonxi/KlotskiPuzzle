@@ -1,5 +1,14 @@
 # Compiled class file
 *.class
+target/
+out/
+
+# Local agent context and implementation plans
+.agents/
+docs/plans/
+
+# Local player data
+.klotski-puzzle/
 
 # Log file
 *.log

@@ -1,5 +1,7 @@
 package view;
 
+import util.AppResources;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -27,9 +29,17 @@ public class ViewUtil {
         return jTextField;
     }
 
+    public static JPasswordField createJPasswordField(JPanel frame, Point location, int width, int height) {
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setSize(width, height);
+        passwordField.setLocation(location);
+        frame.add(passwordField);
+        return passwordField;
+    }
+
     // 创建音乐按钮
     public static JButton createMusicButton(String path, Point pos) {
-        JButton btn = new JButton(new ImageIcon(path)); // 设置按钮图标
+        JButton btn = new JButton(AppResources.icon(path)); // 设置按钮图标
         btn.setBounds(pos.x, pos.y, 50, 50); // 设置按钮位置和大小
         btn.setContentAreaFilled(false); // 不填充内容区域
         btn.setBorderPainted(false); // 不绘制边框
@@ -101,7 +111,7 @@ public class ViewUtil {
 
     // 为按钮添加鼠标监听器
     public static void addButtonMouseListener(JButton button, String path) {
-        ImageIcon originalIcon = new ImageIcon(path); // 原始图标
+        ImageIcon originalIcon = AppResources.icon(path); // 原始图标
         Image img = originalIcon.getImage(); // 获取图标
         ImageIcon scaledIcon = new ImageIcon(img.getScaledInstance((int) (img.getWidth(null) * 0.8), (int) (img.getHeight(null) * 0.8), Image.SCALE_SMOOTH)); // 缩小后的图标
         button.addMouseListener(new MouseAdapter() {

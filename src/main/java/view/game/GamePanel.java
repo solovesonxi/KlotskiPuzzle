@@ -46,7 +46,7 @@ public class GamePanel extends ListenerPanel {
             if (countdownTimer != null) {
                 countdownTimer.stop();
             }
-            countdownTimer = new Timer(1000, _ -> { // 每秒减少倒计时时间
+            countdownTimer = new Timer(1000, event -> { // 每秒减少倒计时时间
                 if (finalCountDown[0] > 0) {
                     finalCountDown[0]--;
                     if (countdownLabel != null)
@@ -60,6 +60,7 @@ public class GamePanel extends ListenerPanel {
             countdownTimer.start(); // 启动计时器
         }
         boxes.clear();
+        selectedBox = null;
         this.removeAll(); // 清空面板
         int[][] map = new int[model.getHeight()][model.getWidth()];
         for (int i = 0; i < map.length; i++) {
