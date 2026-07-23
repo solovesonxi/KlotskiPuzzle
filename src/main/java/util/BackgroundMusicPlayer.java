@@ -95,7 +95,7 @@ public final class BackgroundMusicPlayer implements AutoCloseable {
             openedClip.open(stream);
             if (openedClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl volume = (FloatControl) openedClip.getControl(FloatControl.Type.MASTER_GAIN);
-                volume.setValue(Math.max(volume.getMinimum(), Math.min(-10.0f, volume.getMaximum())));
+                volume.setValue(Math.max(volume.getMinimum(), Math.min(-14.0f, volume.getMaximum())));
             }
             if (closed || token != generation) {
                 openedClip.close();

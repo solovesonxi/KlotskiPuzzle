@@ -30,9 +30,11 @@ public final class AiSolveCoordinator implements AutoCloseable {
 
     private SwingWorker<HuaRongDaoSolver.Result, Void> worker;
     private Timer playbackTimer;
-    private boolean enabled;
+    private Phase phase = Phase.IDLE;
     private boolean disposed;
     private long taskGeneration;
+    private int expandedStates = -1;
+    private int discoveredStates = -1;
 
     public AiSolveCoordinator(JComponent owner, JButton actionButton, GamePanel gamePanel,
                               GameController controller, Consumer<Boolean> inputState) {
@@ -47,7 +49,7 @@ public final class AiSolveCoordinator implements AutoCloseable {
         if (disposed) {
             return;
         }
-        if (enabled) {
+        if (phase != Phase.IDLE) {
             stop();
             return;
         }
@@ -56,8 +58,11 @@ public final class AiSolveCoordinator implements AutoCloseable {
             return;
         }
 
-        enabled = true;
+        phase = Phase.SEARCHING;
+        expandedStates = -1;
+        discoveredStates = -1;
         actionButton.setText(text("ai.stop.search"));
+        actionButton.setToolTipText(null);
         inputState.accept(false);
         int[][] boardSnapshot = BoardRules.copy(controller.model.getMatrix());
         long generation = ++taskGeneration;
@@ -68,7 +73,10 @@ public final class AiSolveCoordinator implements AutoCloseable {
                         boardSnapshot,
                         HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES,
                         (expanded, discovered) -> SwingUtilities.invokeLater(() -> {
-                            if (!disposed && enabled && generation == taskGeneration) {
+                            if (!disposed && phase == Phase.SEARCHING
+                                    && generation == taskGeneration) {
+                                expandedStates = expanded;
+                                discoveredStates = discovered;
                                 actionButton.setText(formatSearchCount(discovered));
                                 actionButton.setToolTipText(text("ai.search.tooltip", expanded, discovered));
                             }
@@ -100,6 +108,8 @@ public final class AiSolveCoordinator implements AutoCloseable {
     }
 
     private void handleResult(HuaRongDaoSolver.Result result) {
+        expandedStates = result.expandedStates();
+        discoveredStates = result.discoveredStates();
         String metrics = text("ai.metrics", result.expandedStates(), result.discoveredStates());
         actionButton.setToolTipText(metrics);
         switch (result.status()) {
@@ -122,6 +132,7 @@ public final class AiSolveCoordinator implements AutoCloseable {
             return;
         }
 
+        phase = Phase.PLAYBACK;
         actionButton.setEnabled(true);
         actionButton.setText(text("ai.stop.playback"));
         playbackTimer = new Timer(500, event -> {
@@ -140,7 +151,9 @@ public final class AiSolveCoordinator implements AutoCloseable {
             playbackTimer.stop();
             playbackTimer = null;
         }
-        enabled = false;
+        phase = Phase.IDLE;
+        expandedStates = -1;
+        discoveredStates = -1;
         actionButton.setText(text("control.ai"));
         actionButton.setToolTipText(null);
         inputState.accept(true);
@@ -161,6 +174,30 @@ public final class AiSolveCoordinator implements AutoCloseable {
         }
         worker = null;
         finishNormally();
+    }
+
+    /** Refreshes localized UI text without changing the active solve or playback lifecycle. */
+    public void applyLanguage() {
+        switch (phase) {
+            case IDLE -> {
+                actionButton.setText(text("control.ai"));
+                actionButton.setToolTipText(null);
+            }
+            case SEARCHING -> {
+                actionButton.setText(discoveredStates >= 0
+                        ? formatSearchCount(discoveredStates)
+                        : text("ai.stop.search"));
+                actionButton.setToolTipText(expandedStates >= 0 && discoveredStates >= 0
+                        ? text("ai.search.tooltip", expandedStates, discoveredStates)
+                        : null);
+            }
+            case PLAYBACK -> {
+                actionButton.setText(text("ai.stop.playback"));
+                actionButton.setToolTipText(expandedStates >= 0 && discoveredStates >= 0
+                        ? text("ai.metrics", expandedStates, discoveredStates)
+                        : null);
+            }
+        }
     }
 
     private static String formatSearchCount(int discoveredStates) {
@@ -186,6 +223,14 @@ public final class AiSolveCoordinator implements AutoCloseable {
             playbackTimer.stop();
             playbackTimer = null;
         }
-        enabled = false;
+        phase = Phase.IDLE;
+        expandedStates = -1;
+        discoveredStates = -1;
+    }
+
+    private enum Phase {
+        IDLE,
+        SEARCHING,
+        PLAYBACK
     }
 }

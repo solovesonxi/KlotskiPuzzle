@@ -9,6 +9,8 @@ import java.util.ResourceBundle;
 /** Runtime messages with English and Simplified Chinese bundles. */
 public final class Messages {
     static final String BASE_NAME = "resources.i18n.messages";
+    private static final ResourceBundle.Control NO_DEFAULT_LOCALE_FALLBACK =
+            ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES);
 
     private static volatile Locale locale = normalize(Locale.getDefault());
     private static volatile ResourceBundle bundle = load(locale);
@@ -52,7 +54,9 @@ public final class Messages {
     }
 
     static ResourceBundle load(Locale requested) {
-        return ResourceBundle.getBundle(BASE_NAME, requested);
+        // Without a no-fallback control, an English request on a zh-CN machine can
+        // select messages_zh_CN.properties when messages_en.properties is absent.
+        return ResourceBundle.getBundle(BASE_NAME, requested, NO_DEFAULT_LOCALE_FALLBACK);
     }
 
     static Locale parseLanguageArgument(String argument) {

@@ -5,8 +5,8 @@ import controller.GameController;
 import model.Difficulty;
 import model.MapModel;
 import util.AppResources;
+import view.GameTheme;
 import view.MainFrame;
-import view.ViewUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,15 +26,10 @@ public class ControlPanel extends JPanel {
     private final JButton logoutBtn; // 退出按钮
     private final JButton showRankBtn; // 显示排行榜按钮
     private final JButton AIBtn; // AI按钮
-    private final JButton upBtn; // 上按钮
-    private final JButton downBtn; // 下按钮
-    private final JButton leftBtn; // 左按钮
-    private final JButton rightBtn; // 右按钮
-    private final JButton exitBtn;
     private final JLabel playerLabel;
     private final JLabel stepLabel;
     private final JLabel countdownLabel;
-    private final Timer focusTimer;
+    private final JLabel interactionHint;
 
     // 控制面板构造函数
     public ControlPanel(MainFrame mainFrame, int width, int height, JPanel musicControls,
@@ -51,7 +46,7 @@ public class ControlPanel extends JPanel {
         contentPanel.setOpaque(false);
         this.add(contentPanel); // 添加内容面板
 
-        musicControls.setBounds(width - 300, 8, 280, 58);
+        musicControls.setBounds(width - 326, 10, 306, 52);
         contentPanel.add(musicControls);
 
         // 设置背景
@@ -61,29 +56,34 @@ public class ControlPanel extends JPanel {
         backgroundLabel.setBounds(0, 0, width, height);
         this.add(backgroundLabel);
 
-        // 修改按钮文字和布局
-        Color btnColor = new Color(94, 38, 18); // 改为深褐色
-        Font btnFont = new Font("隶书", Font.PLAIN, 22); // 按钮字体
-        int buttonWidth = 120; // 按钮宽度
-        int buttonHeight = 50; // 按钮高度
-        // 右侧功能按钮组
-        restartBtn = ViewUtil.createStyledButton(contentPanel, text("control.restart"), new Point(width / 2 + 380, height / 2 - 250), buttonWidth, buttonHeight, btnColor, btnFont);
-        loadBtn = ViewUtil.createStyledButton(contentPanel, text("control.load"), new Point(width / 2 + 380, height / 2 - 150), buttonWidth, buttonHeight, btnColor, btnFont);
-        undoBtn = ViewUtil.createStyledButton(contentPanel, text("control.undo"), new Point(width / 2 + 380, height / 2-50), buttonWidth, buttonHeight, btnColor, btnFont);
-        AIBtn = ViewUtil.createStyledButton(contentPanel, text("control.ai"), new Point(width / 2 + 380, height / 2 + 50), buttonWidth, buttonHeight, btnColor, btnFont);
-        logoutBtn = ViewUtil.createStyledButton(contentPanel, text("control.logout"), new Point(width / 2 + 380, height / 2 + 150), buttonWidth, buttonHeight, btnColor, btnFont);
-        showRankBtn = ViewUtil.createStyledButton(contentPanel, text("control.leaderboard"), new Point(0, height / 2 - 100), 100, 200, new Color(54, 35, 28),new Font("华文行楷", Font.PLAIN, 24));
-        exitBtn = ViewUtil.createExitButton(contentPanel, text("control.exit"), new Point(width / 2 -100, height - 230), 200, 80, new Color(72, 60, 50, 200), new Font("华文行楷", Font.PLAIN, 30));
-        // 方向控制按钮组
-        upBtn = ViewUtil.createAncientButton(contentPanel, text("control.up"), new Point(width / 2 - 470, height / 2 - 100), 80, 60);
-        downBtn = ViewUtil.createAncientButton(contentPanel, text("control.down"), new Point(width / 2 - 470, height / 2 + 40), 80, 60);
-        leftBtn = ViewUtil.createAncientButton(contentPanel, text("control.left"), new Point(width / 2 - 590, height / 2 - 30), 100, 50);
-        rightBtn = ViewUtil.createAncientButton(contentPanel, text("control.right"), new Point(width / 2 - 370, height / 2 - 30), 100, 50);
-        // 状态标签
-        playerLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 370), 400, 120, 32,
+        JPanel statusPanel = new SidePanel();
+        statusPanel.setLayout(null);
+        statusPanel.setBounds(width / 2 - 610, height / 2 - 300, 330, 360);
+        contentPanel.add(statusPanel);
+        playerLabel = createStatusLabel(statusPanel, 24, 24, 282, 58, 25,
                 user == null ? text("control.guest") : text("control.player", user));
-        stepLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 280), 300, 100, 26, text("status.steps", 0));
-        countdownLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 200), 300, 100, 26, text("status.countdown", 180));
+        stepLabel = createStatusLabel(statusPanel, 24, 94, 282, 42, 20, text("status.steps", 0));
+        countdownLabel = createStatusLabel(statusPanel, 24, 142, 282, 42, 20,
+                text("status.countdown", 180));
+        interactionHint = createStatusLabel(statusPanel, 24, 216, 282, 112, 16,
+                text("control.drag.hint"));
+        interactionHint.setVerticalAlignment(SwingConstants.TOP);
+
+        JPanel actionPanel = new SidePanel();
+        actionPanel.setLayout(new GridLayout(6, 1, 0, 12));
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        actionPanel.setBounds(width / 2 + 360, height / 2 - 286, 190, 390);
+        contentPanel.add(actionPanel);
+        restartBtn = GameTheme.createButton(text("control.restart"));
+        loadBtn = GameTheme.createButton(text("control.load"));
+        undoBtn = GameTheme.createButton(text("control.undo"));
+        showRankBtn = GameTheme.createButton(text("control.leaderboard"));
+        AIBtn = GameTheme.createButton(text("control.ai"));
+        logoutBtn = GameTheme.createButton(text("control.logout"));
+        for (JButton button : new JButton[]{restartBtn, loadBtn, undoBtn,
+                showRankBtn, AIBtn, logoutBtn}) {
+            actionPanel.add(button);
+        }
 
         gamePanel = new GamePanel(mapModel);
         gamePanel.setLabel(stepLabel, countdownLabel);
@@ -92,6 +92,11 @@ public class ControlPanel extends JPanel {
         this.aiCoordinator = new AiSolveCoordinator(
                 this, AIBtn, gamePanel, controller, this::setButtons);
         this.add(gamePanel);
+        // Swing's default insertion order is not a stable layering contract.
+        // Keep the HUD above the board and the background below both.
+        this.setComponentZOrder(contentPanel, 0);
+        this.setComponentZOrder(gamePanel, 1);
+        this.setComponentZOrder(backgroundLabel, 2);
 
         // 添加按钮事件
         restartBtn.addActionListener(event -> controller.restartGame());
@@ -100,36 +105,7 @@ public class ControlPanel extends JPanel {
         logoutBtn.addActionListener(event -> showConfirmationDialog(user));
         AIBtn.addActionListener(event -> aiCoordinator.toggle());
         showRankBtn.addActionListener(event -> LeaderboardDialog.show(this));
-        upBtn.addActionListener(event -> gamePanel.doMoveUp());
-        downBtn.addActionListener(event -> gamePanel.doMoveDown());
-        leftBtn.addActionListener(event -> gamePanel.doMoveLeft());
-        rightBtn.addActionListener(event -> gamePanel.doMoveRight());
-
-        JLabel exitLabel = new JLabel("") {
-            @Override
-            public void setBounds(int x, int y, int width, int height) {
-                // 动态居中定位
-                super.setBounds((getParent().getWidth()-200)/2, getParent().getHeight()-50, 200, 30);
-            }
-        };
-
-        // 样式配置
-        exitLabel.setForeground(new Color(178, 34, 34)); // 火焰红
-        exitLabel.setFont(new Font("华文隶书", Font.BOLD, 22));
-        exitLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // 添加半透明背景
-        exitLabel.setOpaque(true);
-        exitLabel.setBackground(new Color(255, 255, 255, 80)); // 半透明白色底
-
-        this.add(exitLabel); // 添加到内容面板
-
-        focusTimer = new Timer(500, event -> {
-            if (gamePanel.isShowing()) {
-                gamePanel.requestFocusInWindow(); //确保键盘被监听
-            }
-        });
-        focusTimer.start();
+        SwingUtilities.invokeLater(gamePanel::requestFocusInWindow);
     }
 
     // 设置按钮状态
@@ -140,15 +116,10 @@ public class ControlPanel extends JPanel {
         undoBtn.setEnabled(enabled);
         logoutBtn.setEnabled(enabled);
         showRankBtn.setEnabled(enabled);
-        upBtn.setEnabled(enabled);
-        downBtn.setEnabled(enabled);
-        leftBtn.setEnabled(enabled);
-        rightBtn.setEnabled(enabled);
     }
 
     /** Stops timers owned by this panel before it is replaced or hidden. */
     public void disposePanel() {
-        focusTimer.stop();
         aiCoordinator.close();
         if (gamePanel.countdownTimer != null) {
             gamePanel.countdownTimer.stop();
@@ -178,19 +149,43 @@ public class ControlPanel extends JPanel {
     }
 
     public void applyLanguage() {
-        aiCoordinator.stop();
         restartBtn.setText(text("control.restart"));
         loadBtn.setText(text("control.load"));
         undoBtn.setText(text("control.undo"));
-        AIBtn.setText(text("control.ai"));
         logoutBtn.setText(text("control.logout"));
         showRankBtn.setText(text("control.leaderboard"));
-        exitBtn.setText(text("control.exit"));
-        upBtn.setText(text("control.up"));
-        downBtn.setText(text("control.down"));
-        leftBtn.setText(text("control.left"));
-        rightBtn.setText(text("control.right"));
+        interactionHint.setText(text("control.drag.hint"));
         playerLabel.setText(user == null ? text("control.guest") : text("control.player", user));
         gamePanel.applyLanguage();
+        aiCoordinator.applyLanguage();
+    }
+
+    private static JLabel createStatusLabel(JPanel owner, int x, int y, int width, int height,
+                                            int fontSize, String value) {
+        JLabel label = new JLabel(value);
+        label.setBounds(x, y, width, height);
+        label.setForeground(GameTheme.TEXT);
+        label.setFont(GameTheme.bodyFont(fontSize));
+        owner.add(label);
+        return label;
+    }
+
+    private static final class SidePanel extends JPanel {
+        private SidePanel() {
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            Graphics2D graphics2D = (Graphics2D) graphics.create();
+            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setColor(new Color(24, 23, 27, 205));
+            graphics2D.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 24, 24);
+            graphics2D.setColor(GameTheme.GOLD_SOFT);
+            graphics2D.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 24, 24);
+            graphics2D.dispose();
+            super.paintComponent(graphics);
+        }
     }
 }

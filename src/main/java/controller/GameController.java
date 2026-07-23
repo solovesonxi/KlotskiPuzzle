@@ -27,6 +27,12 @@ public final class GameController {
             "resources/original/audio/sound-effect/victory.wav";
     private static final String DEFEAT_SOUND =
             "resources/original/audio/sound-effect/defeat.wav";
+    private static final String SELECT_SOUND =
+            "resources/original/audio/sound-effect/select.wav";
+    private static final String INVALID_SOUND =
+            "resources/original/audio/sound-effect/invalid.wav";
+    private static final String UNDO_SOUND =
+            "resources/original/audio/sound-effect/undo.wav";
 
     private final GamePanel view;
     public final MapModel model;
@@ -79,6 +85,7 @@ public final class GameController {
         int nextColumn = column + direction.getCol();
         int[][] moved = BoardRules.applyMove(model.getMatrix(), row, column, direction);
         if (moved == null) {
+            soundEffects.play(INVALID_SOUND);
             return false;
         }
         animating = true;
@@ -174,6 +181,13 @@ public final class GameController {
         history.removeLast();
         model.updateMatrix(BoardRules.copy(history.getLast()));
         view.initialGame(view.steps - 1, -1);
+        soundEffects.play(UNDO_SOUND);
+    }
+
+    public void playSelectionFeedback() {
+        if (!disposed) {
+            soundEffects.play(SELECT_SOUND);
+        }
     }
 
     public void loadGame() {

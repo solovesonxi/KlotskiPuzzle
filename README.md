@@ -18,6 +18,7 @@
 
   <p>
     <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+    <a href="docs/ART_DIRECTION.md">Art direction</a> ·
     <a href="ROADMAP.md">Roadmap</a> ·
     <a href="CHANGELOG.md">Changelog</a> ·
     <a href="CONTRIBUTING.md">Contributing</a> ·
@@ -98,18 +99,18 @@ Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> Boar
 ## Playable Features
 
 - A 5×4 Huarong Dao board with three built-in layouts;
-- English and Simplified Chinese interfaces selected from the in-game language menu, system locale, or `--lang`;
-- Keyboard, WASD, mouse, and on-screen directional controls;
+- English and Simplified Chinese interfaces selected from the in-game language button, system locale, or `--lang`;
+- Press-and-slide mouse gestures plus arrow-key and WASD controls;
 - Background A* search with progress, cancellation, and animated playback;
 - Undo, restart, and a 180-second timed challenge;
 - Local players, saves, step rankings, and time rankings;
-- Background music plus move, victory, and defeat sound effects.
+- Original background music plus selection, move, invalid-move, undo, victory, and defeat effects.
 
 ## Controls and Local Data
 
 1. Create a local player or continue as a guest;
-2. Choose a layout and select a piece;
-3. Move with the arrow keys, WASD, or the on-screen buttons;
+2. Choose a layout and press a piece;
+3. Slide in one direction to move one cell, or use the arrow keys / WASD;
 4. Use the undo action to revert a move and the AI action to start or stop playback;
 5. Local players can save progress; guest progress is not persisted.
 

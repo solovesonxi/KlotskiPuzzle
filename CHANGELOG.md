@@ -4,6 +4,12 @@ All notable changes to KlotskiPuzzle are documented here.
 
 ## Unreleased
 
+- Unify the login, difficulty, game, piece, leaderboard, button, text, and audio presentation under a modern Eastern strategy-board art direction.
+- Replace the four on-screen direction buttons with press-and-slide gestures while retaining arrow-key and WASD input.
+- Render localized piece names in Java over original lacquered-wood assets and add selection feedback.
+- Regenerate four original pentatonic background tracks and add selection, invalid-move, and undo effects.
+- Fix English resource loading on Chinese systems and preserve active AI search or playback when switching languages.
+- Keep leaderboard content opaque so an empty board cannot leak through the dialog background.
 - Add accessible names and tooltips to the icon-only music controls.
 - Add a command-line report for fresh solver status, path, search, and timing metrics.
 - Make English the default GitHub README, retain a Chinese switch, and generate locale-specific demo GIFs.
@@ -12,7 +18,7 @@ All notable changes to KlotskiPuzzle are documented here.
 - Keep countdown state in the game model instead of parsing localized label text.
 - Prepare tagged releases with a portable Windows application and SHA-256 checksums.
 - Add a public scope-focused roadmap and document language-specific launch commands.
-- Add an in-game language menu that immediately refreshes login and gameplay controls.
+- Add an in-game language button that immediately refreshes login and gameplay controls.
 - Replace the default leaderboard presentation with a dedicated parchment-themed dialog.
 - Group the original previous, play/pause, and next icons into a labeled global music control.
 

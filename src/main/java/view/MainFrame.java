@@ -4,7 +4,6 @@ import model.Difficulty;
 import model.MapModel;
 import util.AppResources;
 import util.BackgroundMusicPlayer;
-import util.Messages;
 import view.game.ControlPanel;
 import view.login.CustomDifficultyDialog;
 import view.login.LoginPanel;
@@ -16,7 +15,6 @@ import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import static util.Messages.text;
 
@@ -33,11 +31,8 @@ public class MainFrame extends JFrame implements WindowListener {
     private final LoginPanel loginPanel; // 登录面板
     private ControlPanel controlPanel; // 控制面板
     private final JButton lastBtn, nextBtn, soundBtn; // 共享的播放控件
-    private final JPanel musicControls = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4));
-    private final JLabel musicLabel = new JLabel();
-    private final JMenu languageMenu = new JMenu();
-    private final JRadioButtonMenuItem englishItem = new JRadioButtonMenuItem();
-    private final JRadioButtonMenuItem chineseItem = new JRadioButtonMenuItem();
+    private final JPanel musicControls = new ToolbarPanel();
+    private final LanguageToggleButton languageButton;
     private final BackgroundMusicPlayer musicPlayer;
     private volatile boolean musicPlaying;
 
@@ -49,6 +44,7 @@ public class MainFrame extends JFrame implements WindowListener {
         addWindowListener(this);
         // 初始化登录面板
         loginPanel = new LoginPanel(this, this.getWidth(), this.getHeight());
+        languageButton = new LanguageToggleButton(this::languageDidChange);
         container.add(loginPanel, "login");
         this.add(container); // 添加容器到窗口
 
@@ -68,7 +64,6 @@ public class MainFrame extends JFrame implements WindowListener {
         nextBtn.addActionListener(event -> playTrack(true)); // 播放下一首音乐
         ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
         configureMusicControls();
-        configureLanguageMenu();
 
         musicPlayer = new BackgroundMusicPlayer(
                 loadAudioFiles(),
@@ -130,7 +125,7 @@ public class MainFrame extends JFrame implements WindowListener {
         if (controlPanel != null) {
             controlPanel.disposePanel();
         }
-        musicControls.setBounds(getWidth() - 300, 8, 280, 58);
+        musicControls.setBounds(getWidth() - 326, 10, 306, 52);
         loginPanel.contentPanel.add(musicControls);
         cardLayout.show(container, "login"); // 显示登录卡片
     }
@@ -186,42 +181,21 @@ public class MainFrame extends JFrame implements WindowListener {
     }
 
     private void configureMusicControls() {
-        musicControls.setOpaque(true);
-        musicControls.setBackground(new Color(42, 31, 28));
-        musicControls.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(205, 170, 109), 1),
-                BorderFactory.createEmptyBorder(2, 8, 2, 8)));
-        musicLabel.setForeground(new Color(255, 223, 186));
-        musicLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        musicControls.setLayout(new FlowLayout(FlowLayout.CENTER, 7, 4));
+        musicControls.setOpaque(false);
+        musicControls.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
         for (JButton button : List.of(lastBtn, soundBtn, nextBtn)) {
-            button.setPreferredSize(new Dimension(44, 44));
+            button.setPreferredSize(new Dimension(42, 42));
         }
-        musicControls.add(musicLabel);
         musicControls.add(lastBtn);
         musicControls.add(soundBtn);
         musicControls.add(nextBtn);
+        languageButton.setPreferredSize(new Dimension(76, 36));
+        musicControls.add(languageButton);
         applyLanguage();
     }
 
-    private void configureLanguageMenu() {
-        ButtonGroup languages = new ButtonGroup();
-        languages.add(englishItem);
-        languages.add(chineseItem);
-        languageMenu.add(englishItem);
-        languageMenu.add(chineseItem);
-        englishItem.addActionListener(event -> changeLanguage(Locale.ENGLISH));
-        chineseItem.addActionListener(event -> changeLanguage(Locale.SIMPLIFIED_CHINESE));
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.add(languageMenu);
-        setJMenuBar(menuBar);
-        applyLanguage();
-    }
-
-    private void changeLanguage(Locale locale) {
-        if (Messages.locale().equals(locale)) {
-            return;
-        }
-        Messages.useLocale(locale);
+    private void languageDidChange() {
         applyLanguage();
         loginPanel.applyLanguage();
         if (controlPanel != null && controlPanel.isVisible()) {
@@ -231,12 +205,7 @@ public class MainFrame extends JFrame implements WindowListener {
 
     private void applyLanguage() {
         setTitle(text("app.title"));
-        languageMenu.setText(text("settings.language"));
-        englishItem.setText(text("language.english"));
-        chineseItem.setText(text("language.chinese"));
-        englishItem.setSelected(Locale.ENGLISH.equals(Messages.locale()));
-        chineseItem.setSelected(Locale.SIMPLIFIED_CHINESE.equals(Messages.locale()));
-        musicLabel.setText(text("music.controls"));
+        languageButton.refreshLanguage();
         ViewUtil.configureButtonAccessibility(lastBtn, text("music.previous"), text("music.previous.tooltip"));
         ViewUtil.configureButtonAccessibility(nextBtn, text("music.next"), text("music.next.tooltip"));
         updateSoundButton(musicPlaying);
@@ -248,5 +217,26 @@ public class MainFrame extends JFrame implements WindowListener {
         musicPlayer.close();
         dispose();
         System.exit(0);
+    }
+
+    /** A compact in-game toolbar that belongs to the visual system instead of the OS menu bar. */
+    private static final class ToolbarPanel extends JPanel {
+        private ToolbarPanel() {
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            Graphics2D graphics2D = (Graphics2D) graphics.create();
+            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setColor(new Color(GameTheme.INK.getRed(), GameTheme.INK.getGreen(),
+                    GameTheme.INK.getBlue(), 210));
+            graphics2D.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 22, 22);
+            graphics2D.setColor(GameTheme.GOLD_SOFT);
+            graphics2D.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 22, 22);
+            graphics2D.dispose();
+            super.paintComponent(graphics);
+        }
     }
 }

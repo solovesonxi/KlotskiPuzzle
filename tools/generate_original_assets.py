@@ -67,15 +67,21 @@ def add_paper_texture(image: Image.Image, amount: int = 8) -> Image.Image:
 
 
 def make_game_background() -> None:
-    image = vertical_gradient((1280, 720), (39, 31, 27), (105, 67, 45))
+    image = vertical_gradient((1280, 720), (24, 27, 34), (67, 43, 36))
     draw = ImageDraw.Draw(image, "RGBA")
-    for x in range(-100, 1400, 120):
-        draw.line((x, 0, x - 280, 720), fill=(236, 195, 126, 12), width=3)
-    for radius, alpha in ((310, 24), (230, 20), (150, 16)):
-        draw.ellipse((640 - radius, 360 - radius, 640 + radius, 360 + radius),
-                     outline=(244, 204, 133, alpha), width=2)
-    draw.rounded_rectangle((28, 24, 1252, 696), radius=34,
-                           outline=(235, 198, 130, 80), width=3)
+    # Abstract gate and ink arcs: recognisably Eastern without competing with the board.
+    draw.arc((360, 72, 920, 690), 194, 346, fill=(224, 181, 105, 28), width=3)
+    draw.arc((430, 150, 850, 650), 194, 346, fill=(224, 181, 105, 18), width=2)
+    draw.line((378, 284, 378, 670), fill=(224, 181, 105, 18), width=4)
+    draw.line((902, 284, 902, 670), fill=(224, 181, 105, 18), width=4)
+    for offset, alpha in ((0, 18), (54, 12), (108, 8)):
+        points = []
+        for x in range(0, 1281, 32):
+            y = 560 + offset + 18 * math.sin(x / 120.0) + 8 * math.sin(x / 47.0)
+            points.append((x, y))
+        draw.line(points, fill=(234, 207, 154, alpha), width=2)
+    draw.rounded_rectangle((26, 24, 1254, 696), radius=34,
+                           outline=(224, 181, 105, 55), width=2)
     add_paper_texture(image).save(IMAGE_ROOT / "game-background.png", optimize=True)
 
 
@@ -96,34 +102,34 @@ def make_parchment() -> None:
 
 def make_login_animation() -> None:
     frames: list[Image.Image] = []
-    width, height = 960, 540
+    width, height = 1280, 720
     for frame_index in range(24):
         image = vertical_gradient((width, height), (24, 30, 43), (100, 58, 43))
         draw = ImageDraw.Draw(image, "RGBA")
-        moon_x, moon_y = 740, 122
-        draw.ellipse((moon_x - 64, moon_y - 64, moon_x + 64, moon_y + 64),
+        moon_x, moon_y = int(width * 0.77), int(height * 0.23)
+        moon_radius = 86
+        draw.ellipse((moon_x - moon_radius, moon_y - moon_radius,
+                      moon_x + moon_radius, moon_y + moon_radius),
                      fill=(246, 218, 157, 208))
-        draw.ellipse((moon_x - 48, moon_y - 52, moon_x + 55, moon_y + 51),
+        draw.ellipse((moon_x - 64, moon_y - 70, moon_x + 73, moon_y + 68),
                      fill=(255, 236, 190, 46))
         # Slowly drifting layered hills.
         for layer, color in enumerate(((31, 38, 43, 255), (43, 48, 45, 255), (59, 51, 43, 255))):
-            base = 342 + layer * 54
+            base = int(height * 0.64) + layer * 72
             points = [(0, height), (0, base)]
-            for x in range(0, width + 80, 80):
-                phase = (x / 110.0) + frame_index * (0.012 + layer * 0.004)
-                y = base - 38 - 22 * math.sin(phase) - 12 * math.sin(phase * 0.47)
+            for x in range(0, width + 100, 100):
+                phase = (x / 146.0) + frame_index * (0.012 + layer * 0.004)
+                y = base - 50 - 29 * math.sin(phase) - 16 * math.sin(phase * 0.47)
                 points.append((x, y))
             points.extend(((width, height), (0, height)))
             draw.polygon(points, fill=color)
         # Original animated motes keep the login screen visibly alive.
         for mote in range(34):
             angle = (mote * 0.73 + frame_index * 0.085) % (2 * math.pi)
-            x = (mote * 157 + frame_index * (5 + mote % 3)) % (width + 80) - 40
-            y = 80 + (mote * 67) % 370 + 15 * math.sin(angle)
+            x = (mote * 209 + frame_index * (6 + mote % 3)) % (width + 100) - 50
+            y = 105 + (mote * 89) % 495 + 20 * math.sin(angle)
             r = 2 + mote % 3
             draw.ellipse((x - r, y - r, x + r, y + r), fill=(247, 189, 95, 85 + mote % 4 * 30))
-        draw.rounded_rectangle((92, 72, 520, 468), radius=32,
-                               fill=(26, 22, 22, 95), outline=(230, 191, 119, 80), width=2)
         frames.append(image.quantize(colors=128, method=Image.Quantize.MEDIANCUT))
     frames[0].save(
         IMAGE_ROOT / "login-background.gif",
@@ -136,37 +142,48 @@ def make_login_animation() -> None:
     )
 
 
-def make_piece(path: Path, size: tuple[int, int], label: str,
+def make_piece(path: Path, size: tuple[int, int],
                top: tuple[int, int, int], bottom: tuple[int, int, int],
-               vertical: bool = False) -> None:
-    image = vertical_gradient(size, top, bottom).convert("RGBA")
-    draw = ImageDraw.Draw(image, "RGBA")
+               accent: tuple[int, int, int]) -> None:
     width, height = size
-    draw.rounded_rectangle((2, 2, width - 3, height - 3), radius=15,
-                           outline=(58, 34, 20, 255), width=4)
-    draw.rounded_rectangle((9, 9, width - 10, height - 10), radius=11,
-                           outline=(255, 230, 171, 105), width=2)
-    for x in range(16, width, 22):
-        draw.arc((x - 16, 10, x + 24, height - 10), 82, 278,
-                 fill=(72, 39, 18, 30), width=2)
-    if vertical and len(label) > 1:
-        labels = list(label)
-        text_font = font(min(44, width // 2), bold=True)
-        total = len(labels) * (text_font.size + 5)
-        start = height // 2 - total // 2 + text_font.size // 2
-        for index, character in enumerate(labels):
-            centered_text(draw, (width // 2, start + index * (text_font.size + 5)),
-                          character, text_font, (255, 244, 210, 245))
-    else:
-        text_font = font(min(56, max(28, width // max(2, len(label)))), bold=True)
-        centered_text(draw, (width // 2, height // 2), label, text_font,
-                      (255, 244, 210, 245))
+    image = Image.new("RGBA", size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image, "RGBA")
+    # Soft depth, lacquer body, and restrained metal inlay replace the old stripe-heavy tiles.
+    draw.rounded_rectangle((5, 7, width - 2, height - 1), radius=17,
+                           fill=(18, 11, 9, 120))
+    body = vertical_gradient((width - 8, height - 10), top, bottom).convert("RGBA")
+    body_mask = Image.new("L", body.size, 0)
+    ImageDraw.Draw(body_mask).rounded_rectangle((0, 0, body.width - 1, body.height - 1),
+                                                radius=15, fill=255)
+    image.alpha_composite(Image.composite(body, Image.new("RGBA", body.size), body_mask), (3, 3))
+    draw = ImageDraw.Draw(image, "RGBA")
+    draw.rounded_rectangle((3, 3, width - 6, height - 8), radius=15,
+                           outline=(46, 27, 19, 255), width=3)
+    draw.rounded_rectangle((9, 9, width - 12, height - 14), radius=11,
+                           outline=accent + (205,), width=2)
+    draw.rounded_rectangle((14, 14, width - 17, height - 19), radius=9,
+                           outline=(255, 235, 190, 55), width=1)
+    # A quiet central seal gives each role a focal point without baking language into the asset.
+    seal_radius = min(width, height) // 5
+    center_x, center_y = width // 2, height // 2 - 2
+    draw.ellipse((center_x - seal_radius, center_y - seal_radius,
+                  center_x + seal_radius, center_y + seal_radius),
+                 fill=accent + (24,), outline=accent + (76,), width=2)
+    local_rng = random.Random(path.name)
+    for _ in range(max(5, width * height // 3600)):
+        x = local_rng.randint(14, max(14, width - 18))
+        y = local_rng.randint(14, max(14, height - 20))
+        radius = local_rng.choice((1, 1, 2))
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius),
+                     fill=(255, 239, 198, local_rng.randint(4, 10)))
     image.save(path, optimize=True)
 
 
 def make_pieces() -> None:
-    make_piece(PIECE_ROOT / "commander.png", (200, 200), "主将", (157, 62, 46), (89, 35, 29))
-    make_piece(PIECE_ROOT / "horizontal-general.png", (200, 100), "横将", (166, 106, 45), (99, 56, 24))
+    make_piece(PIECE_ROOT / "commander.png", (200, 200),
+               (151, 57, 48), (78, 28, 27), (229, 180, 96))
+    make_piece(PIECE_ROOT / "horizontal-general.png", (200, 100),
+               (174, 111, 47), (91, 49, 24), (245, 206, 126))
     vertical_colors = [
         ((55, 116, 104), (27, 70, 65)),
         ((64, 91, 140), (34, 52, 92)),
@@ -175,7 +192,7 @@ def make_pieces() -> None:
     ]
     for index, colors in enumerate(vertical_colors, 1):
         make_piece(PIECE_ROOT / f"vertical-general-{index}.png", (100, 200),
-                   f"纵{index}", *colors, vertical=True)
+                   *colors, (229, 192, 118))
     soldier_colors = [
         ((153, 126, 65), (88, 70, 31)),
         ((132, 119, 79), (74, 67, 40)),
@@ -183,7 +200,8 @@ def make_pieces() -> None:
         ((108, 119, 86), (58, 70, 46)),
     ]
     for index, colors in enumerate(soldier_colors, 1):
-        make_piece(PIECE_ROOT / f"soldier-{index}.png", (100, 100), f"兵{index}", *colors)
+        make_piece(PIECE_ROOT / f"soldier-{index}.png", (100, 100),
+                   *colors, (224, 196, 126))
 
 
 def make_icon(name: str, symbol: str) -> None:
@@ -339,27 +357,51 @@ def envelope(position: int, note_samples: int, attack: float = 0.08, release: fl
     return 1.0
 
 
-def make_track(path: Path, notes: list[int], bpm: int, waveform: str) -> None:
+def make_track(path: Path, notes: list[int | None], bpm: int, timbre: str,
+               chord_roots: list[int]) -> None:
     rate = 22_050
-    beats = 24
-    note_samples = int(rate * 60 / bpm)
+    step_samples = int(rate * 60 / bpm / 2)
     samples: list[float] = []
-    for beat in range(beats):
-        midi = notes[beat % len(notes)]
-        frequency = 440.0 * (2 ** ((midi - 69) / 12))
-        for index in range(note_samples):
+    for step in range(64):
+        midi = notes[step % len(notes)]
+        root = chord_roots[(step // 8) % len(chord_roots)]
+        root_frequency = 440.0 * (2 ** ((root - 69) / 12))
+        fifth_frequency = root_frequency * 1.5
+        frequency = 0.0 if midi is None else 440.0 * (2 ** ((midi - 69) / 12))
+        for index in range(step_samples):
             time = index / rate
-            phase = math.tau * frequency * time
-            if waveform == "bell":
-                tone = math.sin(phase) + 0.32 * math.sin(phase * 2.01) + 0.12 * math.sin(phase * 3.98)
-            elif waveform == "reed":
-                tone = math.sin(phase) + 0.22 * math.sin(phase * 3) + 0.08 * math.sin(phase * 5)
-            else:
-                tone = math.sin(phase) + 0.18 * math.sin(phase / 2)
-            bass_frequency = frequency / 2
-            bass = math.sin(math.tau * bass_frequency * time)
-            samples.append((tone * 0.13 + bass * 0.06) * envelope(index, note_samples))
-    # A short fade protects loop/skip boundaries from clicks.
+            lead = 0.0
+            if midi is not None:
+                phase = math.tau * frequency * time
+                if timbre == "plucked":
+                    lead = (math.sin(phase) + 0.34 * math.sin(phase * 2)
+                            + 0.14 * math.sin(phase * 3))
+                    lead *= math.exp(-5.2 * index / step_samples)
+                elif timbre == "flute":
+                    vibrato = 1 + 0.0035 * math.sin(math.tau * 5.1 * time)
+                    lead = math.sin(phase * vibrato) + 0.12 * math.sin(phase * 2)
+                elif timbre == "bell":
+                    lead = (math.sin(phase) + 0.28 * math.sin(phase * 2.01)
+                            + 0.11 * math.sin(phase * 3.97))
+                    lead *= math.exp(-3.7 * index / step_samples)
+                else:
+                    lead = math.sin(phase) + 0.16 * math.sin(phase * 0.5)
+                lead *= envelope(index, step_samples, attack=0.06, release=0.28)
+            pad_envelope = 0.72 + 0.28 * math.sin(math.pi * index / step_samples)
+            pad = (math.sin(math.tau * root_frequency * time) * 0.7
+                   + math.sin(math.tau * fifth_frequency * time) * 0.3) * pad_envelope
+            pulse = 0.0
+            if step % 4 == 0:
+                pulse = math.sin(math.tau * (root_frequency / 2) * time)
+                pulse *= math.exp(-7.0 * index / step_samples)
+            samples.append(lead * 0.105 + pad * 0.025 + pulse * 0.045)
+
+    # Two restrained echoes create space without relying on third-party samples.
+    for delay_seconds, gain in ((0.18, 0.16), (0.34, 0.08)):
+        delay = int(rate * delay_seconds)
+        dry = samples.copy()
+        for index in range(delay, len(samples)):
+            samples[index] += dry[index - delay] * gain
     fade = min(rate // 8, len(samples) // 2)
     for index in range(fade):
         factor = index / fade
@@ -390,14 +432,21 @@ def make_effect(path: Path, frequencies: tuple[float, ...], duration: float,
 
 def make_audio() -> None:
     tracks = [
-        ("dawn-path.wav", [57, 60, 64, 67, 64, 60], 108, "bell"),
-        ("woodland-steps.wav", [52, 55, 59, 62, 59, 55], 116, "reed"),
-        ("quiet-strategy.wav", [50, 57, 53, 60, 57, 53], 96, "sine"),
-        ("open-gate.wav", [55, 62, 59, 67, 64, 62], 124, "bell"),
+        ("dawn-path.wav", [62, 65, 69, 72, 69, 65, 64, None,
+                           62, 64, 65, 69, 72, 69, 65, None], 96, "flute", [50, 46, 48, 43]),
+        ("woodland-steps.wav", [57, 60, 64, 67, 64, 60, 59, 60,
+                               57, 59, 60, 64, 67, 69, 67, None], 108, "plucked", [45, 41, 43, 40]),
+        ("quiet-strategy.wav", [60, None, 64, 67, None, 69, 67, 64,
+                               62, None, 60, 57, 60, 62, 64, None], 84, "warm", [48, 45, 41, 43]),
+        ("open-gate.wav", [65, 69, 72, 74, 72, 69, 67, 65,
+                          69, 72, 74, 77, 74, 72, 69, None], 112, "bell", [53, 48, 50, 46]),
     ]
-    for name, notes, bpm, waveform in tracks:
-        make_track(MUSIC_ROOT / name, notes, bpm, waveform)
-    make_effect(EFFECT_ROOT / "move.wav", (220, 330), 0.16, sweep=0.7, noise=0.08)
+    for name, notes, bpm, timbre, chord_roots in tracks:
+        make_track(MUSIC_ROOT / name, notes, bpm, timbre, chord_roots)
+    make_effect(EFFECT_ROOT / "move.wav", (196, 294), 0.13, sweep=-0.18, noise=0.11)
+    make_effect(EFFECT_ROOT / "select.wav", (660, 880), 0.09, sweep=0.08)
+    make_effect(EFFECT_ROOT / "invalid.wav", (145, 116), 0.15, sweep=-0.30, noise=0.16)
+    make_effect(EFFECT_ROOT / "undo.wav", (330, 247, 196), 0.24, sweep=-0.35, noise=0.035)
     make_effect(EFFECT_ROOT / "victory.wav", (523.25, 659.25, 783.99), 0.92, sweep=0.05)
     make_effect(EFFECT_ROOT / "defeat.wav", (196.0, 146.83), 0.85, sweep=-0.42, noise=0.025)
 

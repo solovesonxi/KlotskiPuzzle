@@ -2,8 +2,8 @@ package view.login;
 
 import data.UserRepository;
 import util.AppResources;
+import view.GameTheme;
 import view.MainFrame;
-import view.ViewUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,6 +24,7 @@ public class LoginPanel extends JPanel {
     private final JButton loginBtn;
     private final JButton registerBtn;
     private final JButton guestLoginBtn;
+    private final JPanel loginCard;
     public JPanel contentPanel; // 内容面板
     private UserRepository users;
 
@@ -44,23 +45,37 @@ public class LoginPanel extends JPanel {
         backgroundImage = AppResources.icon("resources/original/image/login-background.gif").getImage();
         this.add(contentPanel); // 添加内容面板
 
-        // 创建用户名和密码输入框
-        username = ViewUtil.createJTextField(contentPanel, new Point(width / 2 - 40, height / 2 - 100), 160, 30);
-        password = ViewUtil.createJPasswordField(contentPanel, new Point(width / 2 - 40, height / 2 - 50), 160, 30);
-        usernameLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 130, height / 2 - 100), 110, 30, 16, text("login.username")); // 用户名标签
-        passwordLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 130, height / 2 - 50), 110, 30, 16, text("login.password")); // 密码标签
-        titleLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 180, height / 2 - 300), 380, 120, 48, text("login.title")); // 游戏标题
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        loginCard = new LoginCardPanel();
+        loginCard.setLayout(new GridBagLayout());
+        contentPanel.add(loginCard);
 
-        // 登录注册按钮
-        Color btnColor = new Color(139, 69, 19); // 按钮颜色
-        Font btnFont = new Font("楷体", Font.PLAIN, 16); // 按钮字体
-        loginBtn = ViewUtil.createStyledButton(contentPanel, text("login.sign.in"), new Point(width / 2 - 100, height / 2 + 30), 100, 30, btnColor, btnFont);
-        registerBtn = ViewUtil.createStyledButton(contentPanel, text("login.register"), new Point(width / 2 + 20, height / 2 + 30), 100, 30, btnColor, btnFont);
-        guestLoginBtn = ViewUtil.createStyledButton(contentPanel, text("login.guest"), new Point(width / 2 - 100, height / 2 + 80), 220, 32, btnColor, btnFont);
+        username = new JTextField();
+        password = new JPasswordField();
+        GameTheme.styleTextField(username);
+        GameTheme.styleTextField(password);
+        usernameLabel = createFormLabel(text("login.username"));
+        passwordLabel = createFormLabel(text("login.password"));
+        titleLabel = new JLabel(text("login.title"), SwingConstants.CENTER);
+        titleLabel.setForeground(GameTheme.TEXT);
+        titleLabel.setFont(GameTheme.displayFont(44));
+
+        loginBtn = createCardButton(text("login.sign.in"));
+        registerBtn = createCardButton(text("login.register"));
+        guestLoginBtn = createCardButton(text("login.guest"));
+        buildLoginCard();
         loginBtn.addActionListener(event -> handleLogin()); // 登录按钮事件
         registerBtn.addActionListener(event -> handleRegister()); // 注册按钮事件
         guestLoginBtn.addActionListener(event -> mainFrame.showControl(null)); // 游客登录事件
+    }
+
+    @Override
+    public void doLayout() {
+        super.doLayout();
+        contentPanel.setBounds(0, 0, getWidth(), getHeight());
+        int cardWidth = Math.min(520, Math.max(360, getWidth() - 80));
+        int cardHeight = Math.min(460, Math.max(400, getHeight() - 120));
+        loginCard.setBounds((getWidth() - cardWidth) / 2,
+                (getHeight() - cardHeight) / 2 + 12, cardWidth, cardHeight);
     }
 
     @Override
@@ -127,5 +142,88 @@ public class LoginPanel extends JPanel {
         loginBtn.setText(text("login.sign.in"));
         registerBtn.setText(text("login.register"));
         guestLoginBtn.setText(text("login.guest"));
+        loginCard.revalidate();
+        loginCard.repaint();
+    }
+
+    private void buildLoginCard() {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(10, 12, 10, 12);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridwidth = 2;
+        constraints.weightx = 1;
+        constraints.insets = new Insets(14, 30, 28, 30);
+        loginCard.add(titleLabel, constraints);
+
+        constraints.gridwidth = 1;
+        constraints.weightx = 0;
+        constraints.gridy++;
+        constraints.insets = new Insets(8, 36, 8, 8);
+        loginCard.add(usernameLabel, constraints);
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        constraints.insets = new Insets(8, 8, 8, 36);
+        username.setPreferredSize(new Dimension(230, 36));
+        loginCard.add(username, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy++;
+        constraints.weightx = 0;
+        constraints.insets = new Insets(8, 36, 8, 8);
+        loginCard.add(passwordLabel, constraints);
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        constraints.insets = new Insets(8, 8, 8, 36);
+        password.setPreferredSize(new Dimension(230, 36));
+        loginCard.add(password, constraints);
+
+        JPanel accountActions = new JPanel(new GridLayout(1, 2, 12, 0));
+        accountActions.setOpaque(false);
+        accountActions.add(loginBtn);
+        accountActions.add(registerBtn);
+        constraints.gridx = 0;
+        constraints.gridy++;
+        constraints.gridwidth = 2;
+        constraints.weightx = 1;
+        constraints.insets = new Insets(24, 36, 8, 36);
+        loginCard.add(accountActions, constraints);
+
+        constraints.gridy++;
+        constraints.insets = new Insets(8, 36, 20, 36);
+        loginCard.add(guestLoginBtn, constraints);
+    }
+
+    private JLabel createFormLabel(String labelText) {
+        JLabel label = new JLabel(labelText, SwingConstants.RIGHT);
+        label.setForeground(GameTheme.TEXT_MUTED);
+        label.setFont(GameTheme.bodyFont(16));
+        return label;
+    }
+
+    private JButton createCardButton(String buttonText) {
+        return GameTheme.createButton(buttonText);
+    }
+
+    private static final class LoginCardPanel extends JPanel {
+        private LoginCardPanel() {
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            Graphics2D graphics2D = (Graphics2D) graphics.create();
+            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setColor(new Color(GameTheme.INK.getRed(), GameTheme.INK.getGreen(),
+                    GameTheme.INK.getBlue(), 224));
+            graphics2D.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 34, 34);
+            graphics2D.setColor(GameTheme.GOLD_SOFT);
+            graphics2D.setStroke(new BasicStroke(2f));
+            graphics2D.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 34, 34);
+            graphics2D.dispose();
+            super.paintComponent(graphics);
+        }
     }
 }

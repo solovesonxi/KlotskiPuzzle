@@ -39,6 +39,10 @@ public abstract class ListenerPanel extends JPanel {
         this.inputEnabled = inputEnabled;
     }
 
+    protected final boolean isInputEnabled() {
+        return inputEnabled;
+    }
+
     public abstract void doMouseClick(Point point);
 
     public abstract void doMoveRight();

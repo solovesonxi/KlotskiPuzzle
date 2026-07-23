@@ -50,6 +50,9 @@ class AppResourcesTest {
                 "resources/original/audio/music/quiet-strategy.wav",
                 "resources/original/audio/music/open-gate.wav",
                 "resources/original/audio/sound-effect/move.wav",
+                "resources/original/audio/sound-effect/select.wav",
+                "resources/original/audio/sound-effect/invalid.wav",
+                "resources/original/audio/sound-effect/undo.wav",
                 "resources/original/audio/sound-effect/victory.wav",
                 "resources/original/audio/sound-effect/defeat.wav"
         };
