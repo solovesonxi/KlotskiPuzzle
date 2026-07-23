@@ -15,6 +15,7 @@ import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 // 游戏的主窗口，负责显示登录界面和游戏控制面板
 public class MainFrame extends JFrame implements WindowListener {
@@ -73,10 +74,16 @@ public class MainFrame extends JFrame implements WindowListener {
     public void windowClosing(WindowEvent e) {
         if (controlPanel != null && controlPanel.isVisible() && controlPanel.controller != null && controlPanel.controller.user != null) {
             if (controlPanel.controller.isAnimating()) {
-                JOptionPane.showMessageDialog(this, "请等待当前移动动画结束");
+                JOptionPane.showMessageDialog(this, AppResources.get("mainframe.closing.animating"));
                 return;
             }
-            int choice = JOptionPane.showConfirmDialog(this, "是否保存游戏？", "退出游戏", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    AppResources.get("mainframe.closing.confirm.save"),
+                    AppResources.get("mainframe.closing.confirm.exit"),
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
             if (JOptionPane.YES_OPTION == choice) {
                 controlPanel.controller.saveGame();
                 exitApplication();
@@ -144,7 +151,7 @@ public class MainFrame extends JFrame implements WindowListener {
             try {
                 audioResources.add(AppResources.url(path));
             } catch (IllegalArgumentException exception) {
-                System.out.println("跳过缺失的背景音乐: " + path);
+                System.out.println(AppResources.get("dialog.loadaudio") + path);
             }
         }
         return audioResources;

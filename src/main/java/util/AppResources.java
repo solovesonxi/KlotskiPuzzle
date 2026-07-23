@@ -5,9 +5,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /** Resolves bundled resources both from the classpath/JAR and a source checkout. */
 public final class AppResources {
+    private static ResourceBundle messageBundle =
+        ResourceBundle.getBundle("resources/messages", Locale.SIMPLIFIED_CHINESE);
+    
     private AppResources() {
     }
 
@@ -35,5 +41,18 @@ public final class AppResources {
 
     public static ImageIcon icon(String path) {
         return new ImageIcon(url(path));
+    }
+    
+    public static void setLocale(Locale locale) {
+        messageBundle = ResourceBundle.getBundle("resources/messages", locale);
+    }
+
+    public static String get(String key) {
+        return messageBundle.getString(key);
+    }
+
+    // For strings with placeholders like {0}
+    public static String get(String key, Object... args) {
+        return MessageFormat.format(messageBundle.getString(key), args);
     }
 }
