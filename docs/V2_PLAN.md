@@ -6,9 +6,9 @@ KlotskiPuzzle v2 is a Java 22 explainable Huarong Dao algorithm lab. Its primary
 
 ## Implementation status
 
-The first development slice now provides validated content-addressed Puzzle Definitions, Cell Step and Piece Move successor generation, stable Puzzle Presets, and one deterministic experiment runner for BFS, Greedy Best-First, A*, and Weighted A*. An independent bilingual Lab Mode preview runs experiments off the Swing event-dispatch thread and shows a board preview, progress counters, final metrics, and cancellation.
+The current development slice provides validated content-addressed Puzzle Definitions, immutable Puzzle States, Cell Step and Piece Move successor generation, stable Puzzle Presets, and one deterministic runner for BFS, Greedy Best-First, A*, and Weighted A*. The bilingual Lab Mode runs off the Swing event-dispatch thread and now includes Search Overview, inspectable Search Expansion milestones, State Inspector candidate decisions, validated Solution Replay, and versioned JSON Experiment Record export.
 
-This is not stable v2: the full Search Overview, State Inspector, Solution Replay, import/export, Experiment Records, HTML reports, Play Mode session qualification, profile migration, and complete responsive-layout work remain open.
+The password login/registration UI and credential repository have been removed in favor of a direct Play/Lab start screen. This is still not stable v2: Puzzle Definition import/export, complete compressed traces, Algorithm Comparison, HTML reports, Play Mode session qualification, optional Player Profiles, legacy migration UI, and complete Play Mode responsive-layout work remain open.
 
 ## Flagship experience
 
@@ -53,6 +53,7 @@ Algorithm Comparison follows the walkthrough and never replaces it with unexplai
 - Elapsed time and memory are Environment Metrics and include their JDK, operating system, and hardware context.
 - Algorithms are compared only under the same Puzzle Definition, movement rule, and metrics contract.
 - Piece Class participates in search-state identity. Display Identity remains stable within a session but never expands the solver state space.
+- Interactive Lab inspection retains the first 150 expansions and deterministic 500-expansion milestones. This sampling affects presentation only; result paths and deterministic metrics remain exact, and complete observers may consume every Search Expansion.
 
 ## Migration boundary
 

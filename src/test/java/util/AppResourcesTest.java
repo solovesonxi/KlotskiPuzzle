@@ -27,7 +27,7 @@ class AppResourcesTest {
     }
 
     @Test
-    void optimizedLoginBackgroundRemainsAnimated() throws Exception {
+    void optimizedStartBackgroundRemainsAnimated() throws Exception {
         try (InputStream input = AppResources.url("resources/original/image/login-background.gif").openStream();
              ImageInputStream imageInput = ImageIO.createImageInputStream(input)) {
             Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("gif");
@@ -35,7 +35,7 @@ class AppResourcesTest {
             ImageReader reader = readers.next();
             try {
                 reader.setInput(imageInput);
-                assertTrue(reader.getNumImages(true) > 1, "登录背景必须保留动画帧");
+                assertTrue(reader.getNumImages(true) > 1, "开始页背景必须保留动画帧");
             } finally {
                 reader.dispose();
             }

@@ -1,4 +1,4 @@
-package view.login;
+package view.game;
 
 import model.Difficulty;
 import util.AppResources;

@@ -6,17 +6,18 @@
 
   <h1>KlotskiPuzzle</h1>
 
-  <p><strong>A Java 22+ Swing learning project for multi-cell board modeling, A* solving, and non-blocking animated playback.</strong></p>
+  <p><strong>A Java 22+ explainable Huarong Dao algorithm lab: run, inspect, replay, and export deterministic search experiments.</strong></p>
 
   <p>
     <a href="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml/badge.svg"></a>
-    <a href="https://github.com/44-99/KlotskiPuzzle/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/44-99/KlotskiPuzzle?display_name=tag"></a>
+    <a href="https://github.com/44-99/KlotskiPuzzle/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/44-99/KlotskiPuzzle?include_prereleases&display_name=tag"></a>
     <a href="https://openjdk.org/projects/jdk/22/"><img alt="Java 22+" src="https://img.shields.io/badge/Java-22%2B-orange.svg"></a>
     <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
     <a href="https://github.com/44-99/KlotskiPuzzle/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/44-99/KlotskiPuzzle?style=flat"></a>
   </p>
 
   <p>
+    <a href="https://44-99.github.io/KlotskiPuzzle/">Project website</a> ·
     <a href="docs/ARCHITECTURE.md">Architecture</a> ·
     <a href="docs/ART_DIRECTION.md">Art direction</a> ·
     <a href="docs/V2_PLAN.md">V2 plan</a> ·
@@ -31,11 +32,11 @@
   <p><sub>This animation is generated from the project's actual threading and movement model and contains no third-party gameplay footage.</sub></p>
 </div>
 
-KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) that evolved from a Java GUI course project. Its primary audience is students and junior Java developers who know the language basics and want to build their first project combining a desktop UI with a search algorithm.
+KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) that evolved from a Java GUI course project into an explainable algorithm lab. Its primary audience is algorithm learners, students, and Java developers who want to see not only whether a solver succeeds, but which states it expands, why candidates enter or leave the frontier, and how the resulting path changes the board.
 
 The repository is not positioned as a production-ready commercial game. It demonstrates how to organize multi-cell movement rules, a playable UI, A* search, background work, animated playback, local saves, and automated tests into a project that can be run, verified, and extended.
 
-The current application is the playable baseline for an in-development Java 22 explainable Huarong Dao algorithm lab. The agreed product scope, terminology, experiment contract, and stable-v2 completion criteria are recorded in the [v2 plan](docs/V2_PLAN.md) and [domain context](CONTEXT.md); planned capabilities are not presented below as already shipped.
+The current `v2.0.0-beta.1` preview contains separate Play Mode and Lab Mode lifecycles. Lab Mode provides deterministic search events, an inspectable expansion timeline, candidate-decision explanations, validated solution replay, and JSON Experiment Record export. The remaining stable-v2 scope is tracked in the [v2 plan](docs/V2_PLAN.md) and [domain context](CONTEXT.md).
 
 ## Why This Project Exists
 
@@ -73,14 +74,20 @@ mvn exec:java -Dexec.args="--lang=zh-CN"
 After building, the JAR can also be launched directly with the same language option:
 
 ```bash
-java -jar target/klotski-puzzle-1.0.0.jar --lang=en
+java -jar target/klotski-puzzle-2.0.0-beta.1.jar --lang=en
 ```
 
 Images and audio are packaged as classpath resources, so the JAR does not depend on the process working directory.
 
-### Download a release
+### Download the v2 preview
 
-The [latest GitHub release](https://github.com/44-99/KlotskiPuzzle/releases/latest) provides the executable JAR. The updated release workflow also produces a portable Windows package with its own Java runtime for the next tagged release, so players can run it without installing Java or Maven.
+Open the [GitHub Releases page](https://github.com/44-99/KlotskiPuzzle/releases) and choose one of these assets:
+
+- `KlotskiPuzzle-Windows-x64.zip` — portable Windows application with its own Java runtime; extract it and run `KlotskiPuzzle.exe`;
+- `klotski-puzzle-2.0.0-beta.1.jar` — cross-platform executable JAR for systems with Java 22+;
+- `SHA256SUMS.txt` — SHA-256 checksums for verifying both downloads.
+
+The [project website](https://44-99.github.io/KlotskiPuzzle/) provides a shorter product overview before you download or inspect the source. This is a preview release: the implemented walkthrough, inspector, replay, and JSON export are usable, while the remaining stable-v2 work is listed explicitly below and in the roadmap.
 
 ## What You Can Learn
 
@@ -90,13 +97,23 @@ The [latest GitHub release](https://github.com/44-99/KlotskiPuzzle/releases/late
 | How can player and solver logic share rules? | Player actions and solver expansion both call `BoardRules.applyMove` | [`GameController.java`](src/main/java/controller/GameController.java), [`HuaRongDaoSolver.java`](src/main/java/model/HuaRongDaoSolver.java) |
 | How can A* remain bounded and observable? | `PriorityQueue`, a best-known-step map, parent reconstruction, cancellation checks, and a discovered-state limit | [`HuaRongDaoSolver.java`](src/main/java/model/HuaRongDaoSolver.java) |
 | How can Swing stay responsive? | An AI coordinator uses `SwingWorker` for search and `Swing Timer` for EDT playback | [`AiSolveCoordinator.java`](src/main/java/controller/AiSolveCoordinator.java) |
+| How can a search decision be explained? | The shared runner emits deterministic `SearchExpansion` events containing state scores and accepted or rejected candidates | [`SearchExperimentRunner.java`](src/main/java/lab/SearchExperimentRunner.java), [`SearchExpansion.java`](src/main/java/lab/SearchExpansion.java) |
+| How can results be reviewed and shared? | `SolutionReplay` validates every step, while a versioned JSON record includes the puzzle, strategy, outcome, path, metrics, and runtime environment | [`SolutionReplay.java`](src/main/java/lab/SolutionReplay.java), [`ExperimentRecord.java`](src/main/java/lab/ExperimentRecord.java) |
 | How does course code become a verifiable project? | Maven builds it, JUnit 5 checks rules and paths, and GitHub Actions runs continuous integration with Java 22 | [`pom.xml`](pom.xml), [`src/test/java`](src/test/java) |
-| How are local-data boundaries handled? | Player data lives under the user directory, passwords use PBKDF2, and recoverable saves use temporary-file replacement | [`data`](src/main/java/data) |
+| How are local-data boundaries handled? | The start screen has no password accounts; legacy saves and rankings remain local under the user directory and future migration must be user-controlled | [`data`](src/main/java/data), [`0005-use-local-profiles-without-passwords.md`](docs/adr/0005-use-local-profiles-without-passwords.md) |
 
 The AI execution flow is:
 
 ```text
 Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> BoardRules -> UI playback
+```
+
+The Lab explanation flow is:
+
+```text
+Puzzle Definition -> Search Experiment -> SearchExperimentRunner
+                  -> Search Expansion events -> Search Overview / State Inspector
+                  -> Result -> Solution Replay / JSON Experiment Record
 ```
 
 ## Playable Features
@@ -105,22 +122,26 @@ Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> Boar
 - English and Simplified Chinese interfaces selected from the in-game language button, system locale, or `--lang`;
 - Press-and-slide mouse gestures plus arrow-key and WASD controls;
 - Background A* search with progress, cancellation, and animated playback;
-- An early Lab Mode slice for deterministic BFS, Greedy Best-First, A*, and Weighted A* experiments under Cell Step or Piece Move rules;
+- Deterministic BFS, Greedy Best-First, A*, and Weighted A* experiments under Cell Step or Piece Move rules;
+- Search Overview metrics and a bounded inspectable expansion timeline;
+- State Inspector explanations for candidate scores and accept/reject decisions;
+- Solution Replay with previous, play/pause, next, and direct slider navigation;
+- Versioned JSON Experiment Record export with puzzle identity, configuration, path, metrics, and runtime context;
 - Undo, restart, and a 180-second timed challenge;
-- Local players, saves, step rankings, and time rankings;
+- A password-free Play/Lab start screen; optional local Player Profiles remain v2 work;
 - Original background music plus selection, move, invalid-move, undo, victory, and defeat effects.
 
-The Lab Mode slice currently exposes reproducible configuration, a board preview, live counters, final metrics, and cancellation. Search charts, the State Inspector, Solution Replay, Experiment Records, and HTML reports remain v2 work tracked in the [v2 plan](docs/V2_PLAN.md).
+Lab Mode records the first 150 expansions plus deterministic 500-expansion milestones for interactive inspection, while aggregate result metrics remain exact. Complete compressed traces, puzzle import/export, algorithm-comparison reports, and read-only HTML reports remain v2 work tracked in the [v2 plan](docs/V2_PLAN.md).
 
 ## Controls and Local Data
 
-1. Create a local player or continue as a guest;
-2. Choose a layout and press a piece;
+1. Choose Play Mode or Algorithm Lab on the password-free start screen;
+2. In Play Mode, choose a layout and press a piece;
 3. Slide in one direction to move one cell, or use the arrow keys / WASD;
 4. Use the undo action to revert a move and the AI action to start or stop playback;
-5. Local players can save progress; guest progress is not persisted.
+5. In Lab Mode, run an experiment, inspect expansions, replay the solution, or export its JSON record.
 
-Player profiles, saves, and leaderboard data are stored in `${user.home}/.klotski-puzzle/`. This is a single-machine profile system, not an online account service. Base64 is used only as save-data encoding and is not encryption.
+Legacy saves and leaderboard data use `${user.home}/.klotski-puzzle/`. Password accounts have been removed. Released v2 builds will offer explicit import, skip, or delete choices for legacy data; they must never silently delete user files. Optional password-free Player Profiles are not implemented yet.
 
 ## Project Structure
 
@@ -129,7 +150,8 @@ KlotskiPuzzle/
 ├── src/main/java/
 │   ├── cli/          # Copy-paste solver metrics report
 │   ├── controller/   # Game session plus AI search/playback lifecycle
-│   ├── data/         # Players, rankings, and recoverable saves
+│   ├── data/         # Legacy rankings and recoverable saves
+│   ├── lab/          # Search experiments, events, replay, and record export
 │   ├── model/        # Board model, layouts, movement rules, and A* solver
 │   ├── util/         # Classpath resources and background-music lifecycle
 │   └── view/         # Swing windows and components
@@ -140,7 +162,7 @@ KlotskiPuzzle/
 └── pom.xml           # Java 22 Maven build
 ```
 
-The source uses pragmatic layers rather than strict MVC. `BoardRules` is the shared boundary for player and AI moves, while save persistence, effects, AI lifecycle, and leaderboard UI have been extracted from the large controllers. See the [architecture document](docs/ARCHITECTURE.md) for responsibilities and threading details.
+The source uses pragmatic layers rather than strict MVC. `BoardRules` is the shared movement seam; `PuzzleDefinition` owns validated experiment rules; and `SearchExperimentRunner` keeps strategies, deterministic ordering, events, limits, metrics, and path reconstruction behind one interface. Lab views are split by stable product responsibility rather than one monolithic Swing panel. See the [architecture document](docs/ARCHITECTURE.md).
 
 ## Verification
 
@@ -148,7 +170,7 @@ The source uses pragmatic layers rather than strict MVC. `BoardRules` is the sha
 mvn clean verify
 ```
 
-Automated tests cover board integrity, legal and illegal movement for all four piece types, built-in layout solving and path replay, cancellation and state limits, search-node semantics, local password hashing, recoverable saves, leaderboard recovery, and packaged resources. A resource test also prevents the animated login GIF from silently regressing to a static image. See the CI badge at the top for the latest build result.
+Automated tests cover board integrity, legal and illegal movement, all four Lab strategies, both movement rules, deterministic expansion events, candidate decisions, validated solution replay, JSON Experiment Records, password-free start actions, the resizable Lab workspace and aligned action columns, recoverable saves, leaderboard recovery, and packaged resources. A resource test also protects the animated start background. See the CI badge at the top for the latest build result.
 
 Move counts plus expanded/discovered-state baselines for all three presets are recorded in [solver benchmarks](docs/SOLVER_BENCHMARKS.md). Performance changes should be compared under the same move definition.
 
@@ -162,13 +184,13 @@ mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
 
 - The project requires Java 22+ and targets desktop environments that support Swing;
 - A* keeps at most 250,000 discovered states by default and reports the limit explicitly. One move means translating one piece by one cell; the project does not claim results under every alternative counting convention;
-- The interface uses a fixed window and absolute positioning, so small-screen and high-DPI support is limited;
-- Profiles, rankings, and saves are local only; there is no server-side authentication or cross-device synchronization;
+- Lab Mode uses a themed user-resizable split workspace with continuous drag feedback and 1280×720 coverage; Play Mode still contains legacy absolute positioning, so broader small-screen and high-DPI support remains incomplete;
+- Optional Player Profiles are not implemented; legacy rankings and saves are local only, with no server-side authentication or cross-device synchronization;
 - There is no free-form level editor yet; the difficulty dialog exposes three validated presets.
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) and the public [roadmap](ROADMAP.md) before contributing. Useful areas include GUI integration tests, responsive layouts, a validated level editor, and deeper solver benchmarks. Use Issues for scoped work and Discussions for open-ended questions or ideas.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and the public [roadmap](ROADMAP.md) before contributing. Useful areas include complete trace export, Puzzle Definition import/export, Player Profile migration, HTML reports, GUI lifecycle tests, and deeper heuristic experiments. Use Issues for scoped work and Discussions for open-ended questions or ideas.
 
 ## License
 

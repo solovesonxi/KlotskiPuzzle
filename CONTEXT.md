@@ -56,6 +56,10 @@ _Avoid_: Step, slide
 An immutable, validated, and shareable description of a puzzle's initial board and rule choices, identified by its content.
 _Avoid_: Level file, map, difficulty
 
+**Puzzle State**:
+An immutable snapshot of every occupied and empty cell at one point in a Play Session or Search Experiment.
+_Avoid_: Board array, matrix, screen
+
 **Puzzle Preset**:
 A bundled Puzzle Definition with a stable identity and a curated purpose or recognized layout name.
 _Avoid_: Difficulty, level
@@ -87,6 +91,10 @@ _Avoid_: Uncontrolled benchmark, timing race
 **Search Experiment**:
 A reproducible execution of one search strategy against one puzzle under declared parameters, limits, and metric definitions.
 _Avoid_: Solver run, benchmark run
+
+**Search Expansion**:
+The inspection record for one state removed from the frontier, including its scores and every candidate move with the reason it was accepted or rejected.
+_Avoid_: Log line, animation frame, progress update
 
 **Experiment Record**:
 A versioned, shareable artifact containing a Search Experiment's reproducible configuration, outcome, deterministic metrics, and qualified environment observations. A complete search trace is an optional attachment rather than required record content.

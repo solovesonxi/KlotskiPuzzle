@@ -21,12 +21,11 @@ public class ControlPanel extends JPanel {
     private final GamePanel gamePanel; // 游戏面板
     private final AiSolveCoordinator aiCoordinator;
     private final JButton restartBtn; // 重启按钮
-    private final JButton loadBtn; // 加载按钮
     private final JButton undoBtn; // 撤销按钮
     private final JButton logoutBtn; // 退出按钮
     private final JButton showRankBtn; // 显示排行榜按钮
     private final JButton AIBtn; // AI按钮
-    private final JLabel playerLabel;
+    private final JLabel sessionLabel;
     private final JLabel stepLabel;
     private final JLabel countdownLabel;
     private final JLabel interactionHint;
@@ -60,8 +59,8 @@ public class ControlPanel extends JPanel {
         statusPanel.setLayout(null);
         statusPanel.setBounds(width / 2 - 610, height / 2 - 300, 330, 360);
         contentPanel.add(statusPanel);
-        playerLabel = createStatusLabel(statusPanel, 24, 24, 282, 58, 25,
-                user == null ? text("control.guest") : text("control.player", user));
+        sessionLabel = createStatusLabel(statusPanel, 24, 24, 282, 58, 25,
+                text("control.play.mode"));
         stepLabel = createStatusLabel(statusPanel, 24, 94, 282, 42, 20, text("status.steps", 0));
         countdownLabel = createStatusLabel(statusPanel, 24, 142, 282, 42, 20,
                 text("status.countdown", 180));
@@ -70,17 +69,16 @@ public class ControlPanel extends JPanel {
         interactionHint.setVerticalAlignment(SwingConstants.TOP);
 
         JPanel actionPanel = new SidePanel();
-        actionPanel.setLayout(new GridLayout(6, 1, 0, 12));
+        actionPanel.setLayout(new GridLayout(5, 1, 0, 12));
         actionPanel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         actionPanel.setBounds(width / 2 + 360, height / 2 - 286, 190, 390);
         contentPanel.add(actionPanel);
         restartBtn = GameTheme.createButton(text("control.restart"));
-        loadBtn = GameTheme.createButton(text("control.load"));
         undoBtn = GameTheme.createButton(text("control.undo"));
         showRankBtn = GameTheme.createButton(text("control.leaderboard"));
         AIBtn = GameTheme.createButton(text("control.ai"));
-        logoutBtn = GameTheme.createButton(text("control.logout"));
-        for (JButton button : new JButton[]{restartBtn, loadBtn, undoBtn,
+        logoutBtn = GameTheme.createButton(text("control.back"));
+        for (JButton button : new JButton[]{restartBtn, undoBtn,
                 showRankBtn, AIBtn, logoutBtn}) {
             actionPanel.add(button);
         }
@@ -100,7 +98,6 @@ public class ControlPanel extends JPanel {
 
         // 添加按钮事件
         restartBtn.addActionListener(event -> controller.restartGame());
-        loadBtn.addActionListener(event -> controller.loadGame());
         undoBtn.addActionListener(event -> controller.undo());
         logoutBtn.addActionListener(event -> showConfirmationDialog(user));
         AIBtn.addActionListener(event -> aiCoordinator.toggle());
@@ -112,7 +109,6 @@ public class ControlPanel extends JPanel {
     private void setButtons(boolean enabled) {
         gamePanel.setInputEnabled(enabled);
         restartBtn.setEnabled(enabled);
-        loadBtn.setEnabled(enabled);
         undoBtn.setEnabled(enabled);
         logoutBtn.setEnabled(enabled);
         showRankBtn.setEnabled(enabled);
@@ -135,7 +131,7 @@ public class ControlPanel extends JPanel {
         }
         gamePanel.countdownTimer.stop(); // 停止计时器
         if (user == null) {
-            mainFrame.showLogin();
+            mainFrame.showStart();
         } else {
             int response = JOptionPane.showConfirmDialog(this, text("control.save.prompt"),
                     text("common.confirm"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -143,19 +139,18 @@ public class ControlPanel extends JPanel {
                 if (response == JOptionPane.YES_OPTION) { // 确认保存
                     controller.saveGame();
                 }
-                mainFrame.showLogin();
+                mainFrame.showStart();
             }
         }
     }
 
     public void applyLanguage() {
         restartBtn.setText(text("control.restart"));
-        loadBtn.setText(text("control.load"));
         undoBtn.setText(text("control.undo"));
-        logoutBtn.setText(text("control.logout"));
+        logoutBtn.setText(text("control.back"));
         showRankBtn.setText(text("control.leaderboard"));
         interactionHint.setText(text("control.drag.hint"));
-        playerLabel.setText(user == null ? text("control.guest") : text("control.player", user));
+        sessionLabel.setText(text("control.play.mode"));
         gamePanel.applyLanguage();
         aiCoordinator.applyLanguage();
     }

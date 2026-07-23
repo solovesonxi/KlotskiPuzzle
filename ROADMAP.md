@@ -9,21 +9,23 @@ KlotskiPuzzle is evolving from a playable Java Swing Huarong Dao reference into 
 - Switch English and Simplified Chinese at runtime.
 - Build and verify with Java 22+, Maven, JUnit, and GitHub Actions.
 - Package original programmatically generated runtime media and a portable Windows application.
-- Preview independent Lab Mode experiments with four deterministic strategies, two movement rules, a board preview, live counters, and cancellation.
+- Run independent Lab Mode experiments with four deterministic strategies and two movement rules.
+- Inspect deterministic Search Expansion milestones and accepted/rejected candidates through Search Overview and State Inspector.
+- Replay validated solutions with step controls and export versioned JSON Experiment Records.
+- Enter Play Mode or Lab Mode from a password-free start screen.
 
 ## V2 foundation
 
 - Add versioned Puzzle Definition import/export on top of the implemented validation, content identity, movement rules, and stable presets.
 - Separate Play Mode sessions from Lab Mode Search Experiments while sharing rule and rendering modules.
-- Define deterministic search events, Experiment Records, and qualified environment observations.
-- Replace password accounts with optional local Player Profiles and user-controlled legacy migration.
+- Add optional local Player Profiles and user-controlled legacy migration now that password accounts have been removed.
+- Add full compressed trace capture while keeping routine Experiment Records small.
 
 ## V2 lab experience
 
-- Add Search Overview, State Inspector, and Solution Replay.
 - Compare BFS, Greedy Best-First Search, A*, and Weighted A* under one declared experiment contract.
 - Import and export validated 5x4 custom puzzles.
-- Export optional compressed traces and self-contained read-only HTML Experiment Reports.
+- Add side-by-side Algorithm Comparison and self-contained read-only HTML Experiment Reports.
 - Keep the interface usable at 1280x720 and common Windows display scaling.
 
 ## After stable v2

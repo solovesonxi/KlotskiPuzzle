@@ -5,9 +5,9 @@ import model.MapModel;
 import util.AppResources;
 import util.BackgroundMusicPlayer;
 import view.game.ControlPanel;
+import view.game.CustomDifficultyDialog;
 import view.lab.LabPanel;
-import view.login.CustomDifficultyDialog;
-import view.login.LoginPanel;
+import view.start.StartPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +19,7 @@ import java.util.List;
 
 import static util.Messages.text;
 
-// 游戏的主窗口，负责显示登录界面和游戏控制面板
+// 游戏的主窗口，负责显示开始页、游戏模式和算法实验室
 public class MainFrame extends JFrame implements WindowListener {
     private static final List<String> MUSIC_RESOURCES = List.of(
             "resources/original/audio/music/dawn-path.wav",
@@ -29,7 +29,7 @@ public class MainFrame extends JFrame implements WindowListener {
     );
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel container = new JPanel(cardLayout);
-    private final LoginPanel loginPanel; // 登录面板
+    private final StartPanel startPanel;
     private final LabPanel labPanel;
     private ControlPanel controlPanel; // 控制面板
     private final JButton lastBtn, nextBtn, soundBtn; // 共享的播放控件
@@ -44,10 +44,10 @@ public class MainFrame extends JFrame implements WindowListener {
         this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         this.setLocationRelativeTo(null); // 窗口居中显示
         addWindowListener(this);
-        // 初始化登录面板
-        loginPanel = new LoginPanel(this, this.getWidth(), this.getHeight());
+        startPanel = new StartPanel(() -> showControl(null), this::showLab,
+                this.getWidth(), this.getHeight());
         languageButton = new LanguageToggleButton(this::languageDidChange);
-        container.add(loginPanel, "login");
+        container.add(startPanel, "start");
         this.add(container); // 添加容器到窗口
 
         // 音乐播放按钮
@@ -67,7 +67,7 @@ public class MainFrame extends JFrame implements WindowListener {
         ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
         configureMusicControls();
 
-        labPanel = new LabPanel(this::showLogin, musicControls);
+        labPanel = new LabPanel(this::showStart, musicControls);
         container.add(labPanel, "lab");
 
         musicPlayer = new BackgroundMusicPlayer(
@@ -75,7 +75,7 @@ public class MainFrame extends JFrame implements WindowListener {
                 playing -> SwingUtilities.invokeLater(() -> updateSoundButton(playing)),
                 message -> System.err.println(message));
         musicPlayer.start();
-        showLogin(); // 显示登录界面
+        showStart();
         this.setVisible(true); // 显示窗口
     }
 
@@ -125,14 +125,12 @@ public class MainFrame extends JFrame implements WindowListener {
     public void windowDeactivated(WindowEvent e) {
     }
 
-    // 显示登录面板
-    public void showLogin() {
+    public void showStart() {
         if (controlPanel != null) {
             controlPanel.disposePanel();
         }
-        musicControls.setBounds(getWidth() - 326, 10, 306, 52);
-        loginPanel.contentPanel.add(musicControls);
-        cardLayout.show(container, "login"); // 显示登录卡片
+        startPanel.attachToolbar(musicControls);
+        cardLayout.show(container, "start");
     }
 
     // 显示控制面板
@@ -212,7 +210,7 @@ public class MainFrame extends JFrame implements WindowListener {
 
     private void languageDidChange() {
         applyLanguage();
-        loginPanel.applyLanguage();
+        startPanel.applyLanguage();
         labPanel.applyLanguage();
         if (controlPanel != null && controlPanel.isVisible()) {
             controlPanel.applyLanguage();

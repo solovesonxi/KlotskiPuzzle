@@ -16,10 +16,6 @@ public final class AppData {
         return Files.createDirectories(root);
     }
 
-    public static Path usersFile() throws IOException {
-        return root().resolve("users.properties");
-    }
-
     public static Path leaderboardFile() throws IOException {
         return root().resolve("leaderboard.txt");
     }

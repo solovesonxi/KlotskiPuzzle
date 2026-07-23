@@ -195,7 +195,7 @@ public final class GameController {
             return;
         }
         if (user == null || user.isBlank()) {
-            JOptionPane.showMessageDialog(view, text("game.login.required"));
+            JOptionPane.showMessageDialog(view, text("game.profile.required"));
             return;
         }
         try {
@@ -227,7 +227,7 @@ public final class GameController {
             return;
         }
         if (user == null || user.isBlank()) {
-            JOptionPane.showMessageDialog(view, text("game.save.guest"));
+            JOptionPane.showMessageDialog(view, text("game.save.profile.required"));
             return;
         }
         try {

@@ -23,24 +23,24 @@ class MessagesTest {
         ResourceBundle chinese = Messages.load(Locale.SIMPLIFIED_CHINESE);
 
         assertEquals(new HashSet<>(english.keySet()), new HashSet<>(chinese.keySet()));
-        assertNotEquals(english.getString("login.sign.in"), chinese.getString("login.sign.in"));
+        assertNotEquals(english.getString("start.lab"), chinese.getString("start.lab"));
     }
 
     @Test
     void configuresSupportedCommandLineLanguages() {
         Messages.configure("--lang=zh-CN");
         assertEquals(Locale.SIMPLIFIED_CHINESE, Messages.locale());
-        assertEquals("登录", Messages.text("login.sign.in"));
+        assertEquals("进入算法实验室", Messages.text("start.lab"));
 
         Messages.configure("en");
         assertEquals(Locale.ENGLISH, Messages.locale());
-        assertEquals("Sign in", Messages.text("login.sign.in"));
+        assertEquals("Open Algorithm Lab", Messages.text("start.lab"));
     }
 
     @Test
     void formatsArgumentsAndNewlines() {
         Messages.useLocale(Locale.ENGLISH);
         assertEquals("Moves: 12", Messages.text("status.steps", 12));
-        assertTrue(Messages.text("login.credentials.syntax").contains("\n"));
+        assertTrue(Messages.text("lab.export.success", "record.json").contains("\n"));
     }
 }

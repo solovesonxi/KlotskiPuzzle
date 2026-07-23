@@ -10,6 +10,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -82,6 +84,39 @@ class SearchExperimentRunnerTest {
                 puzzle, SearchStrategy.WEIGHTED_A_STAR, 0.5, 10));
         assertThrows(IllegalArgumentException.class, () -> new SearchExperiment(
                 puzzle, SearchStrategy.A_STAR, 1.0, 0));
+    }
+
+    @Test
+    void emitsDeterministicInspectableExpansionEvents() {
+        PuzzleDefinition puzzle = PuzzlePreset.TUTORIAL.definition(MovementRule.CELL_STEP);
+        SearchExperiment experiment = SearchExperiment.of(puzzle, SearchStrategy.A_STAR);
+        List<SearchExpansion> first = observedExpansions(experiment);
+        List<SearchExpansion> second = observedExpansions(experiment);
+
+        assertFalse(first.isEmpty());
+        assertEquals(first, second);
+        SearchExpansion expansion = first.getFirst();
+        assertEquals(1, expansion.index());
+        assertEquals(puzzle.initialBoard().length, expansion.state().board().length);
+        assertFalse(expansion.candidates().isEmpty());
+        assertTrue(expansion.candidates().stream().anyMatch(SearchExpansion.Candidate::accepted));
+        assertTrue(expansion.candidates().stream()
+                .allMatch(candidate -> candidate.decision() != null));
+    }
+
+    private List<SearchExpansion> observedExpansions(SearchExperiment experiment) {
+        List<SearchExpansion> expansions = new ArrayList<>();
+        runner.run(experiment, new SearchObserver() {
+            @Override
+            public void onProgress(SearchExperimentRunner.Progress progress) {
+            }
+
+            @Override
+            public void onExpansion(SearchExpansion expansion) {
+                expansions.add(expansion);
+            }
+        });
+        return List.copyOf(expansions);
     }
 
     private static int[][] replay(PuzzleDefinition puzzle,

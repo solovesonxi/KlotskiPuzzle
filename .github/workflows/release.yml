@@ -24,7 +24,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: release-jar
-          path: target/klotski-puzzle-1.0.0.jar
+          path: target/klotski-puzzle-*.jar
 
   build-windows-portable:
     runs-on: windows-latest
@@ -37,16 +37,21 @@ jobs:
           cache: maven
       - name: Verify and package
         run: mvn --batch-mode --no-transfer-progress clean verify
+      - name: Read project version
+        shell: pwsh
+        run: |
+          $version = mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+          "PROJECT_VERSION=$version" >> $env:GITHUB_ENV
       - name: Build portable Windows application
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path package-input, dist -Force | Out-Null
-          Copy-Item target/klotski-puzzle-1.0.0.jar package-input/
+          Copy-Item "target/klotski-puzzle-$env:PROJECT_VERSION.jar" package-input/
           jpackage `
             --type app-image `
             --name KlotskiPuzzle `
             --input package-input `
-            --main-jar klotski-puzzle-1.0.0.jar `
+            --main-jar "klotski-puzzle-$env:PROJECT_VERSION.jar" `
             --main-class Main `
             --dest dist `
             --java-options "-Dfile.encoding=UTF-8"
@@ -63,6 +68,7 @@ jobs:
     needs: [build-jar, build-windows-portable]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*
@@ -70,16 +76,26 @@ jobs:
           merge-multiple: true
       - name: Generate checksums
         working-directory: release-assets
-        run: sha256sum klotski-puzzle-1.0.0.jar KlotskiPuzzle-Windows-x64.zip > SHA256SUMS.txt
+        run: sha256sum klotski-puzzle-*.jar KlotskiPuzzle-Windows-x64.zip > SHA256SUMS.txt
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: >-
-          gh release create "${GITHUB_REF_NAME}"
-          release-assets/klotski-puzzle-1.0.0.jar
-          release-assets/KlotskiPuzzle-Windows-x64.zip
-          release-assets/SHA256SUMS.txt
-          --verify-tag
-          --generate-notes
-          --title "KlotskiPuzzle ${GITHUB_REF_NAME}"
+        shell: bash
+        run: |
+          release_flags=()
+          notes_flags=(--generate-notes)
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            release_flags+=(--prerelease)
+          fi
+          if [[ -f "docs/releases/${GITHUB_REF_NAME}.md" ]]; then
+            notes_flags=(--notes-file "docs/releases/${GITHUB_REF_NAME}.md")
+          fi
+          gh release create "${GITHUB_REF_NAME}" \
+            release-assets/klotski-puzzle-*.jar \
+            release-assets/KlotskiPuzzle-Windows-x64.zip \
+            release-assets/SHA256SUMS.txt \
+            --verify-tag \
+            --title "KlotskiPuzzle ${GITHUB_REF_NAME}" \
+            "${notes_flags[@]}" \
+            "${release_flags[@]}"

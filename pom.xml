@@ -6,9 +6,9 @@
 
     <groupId>io.github.44-99</groupId>
     <artifactId>klotski-puzzle</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0-beta.1</version>
     <name>KlotskiPuzzle</name>
-    <description>Java Swing Klotski puzzle with an A* solver</description>
+    <description>Java 22 Swing Huarong Dao algorithm lab with explainable deterministic search</description>
 
     <properties>
         <maven.compiler.release>22</maven.compiler.release>

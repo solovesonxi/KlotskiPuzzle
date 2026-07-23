@@ -24,6 +24,11 @@ flowchart LR
     LabPanel -->|"SwingWorker"| ExperimentRunner["SearchExperimentRunner"]
     ExperimentRunner --> PuzzleDefinition
     PuzzleDefinition --> BoardRules
+    ExperimentRunner --> SearchExpansion["SearchExpansion events"]
+    SearchExpansion --> SearchOverview["Search Overview"]
+    SearchExpansion --> StateInspector["State Inspector"]
+    ExperimentRunner --> SolutionReplay
+    ExperimentRunner --> ExperimentRecord["JSON Experiment Record"]
 ```
 
 The important boundary is `BoardRules`: both player moves and solver expansion call the same pure Java function. A move therefore cannot be legal only in the UI or only in the solver.
@@ -35,9 +40,9 @@ The important boundary is `BoardRules`: both player moves and solver expansion c
 | `cli` | Copy-paste diagnostics and reports that reuse the application model |
 | `model` | Board representation, validation, movement rules, presets, and bounded A* search |
 | `controller` | A game session plus AI search/playback coordination |
-| `lab` | Deterministic search-experiment configuration, strategy policy, metrics, and path reconstruction |
-| `view` | Swing composition, rendering, input, and dialogs |
-| `data` | User credentials, rankings, save serialization, atomic replacement, and corrupt-file quarantine |
+| `lab` | Deterministic experiment configuration, search events, candidate decisions, replay validation, metrics, and record export |
+| `view` | Swing composition, rendering, input, and dialogs, including separate Lab explanation modules |
+| `data` | Legacy rankings, save serialization, atomic replacement, and corrupt-file quarantine |
 | `util` | Classpath resource loading and audio lifecycle |
 
 ## Threading model
@@ -51,7 +56,11 @@ The important boundary is `BoardRules`: both player moves and solver expansion c
 
 ## Solver state
 
-V2 introduces a deeper experiment seam alongside the legacy gameplay solver. `PuzzleDefinition` owns validated 5x4 content identity, movement-rule behavior, stable successor ordering, and state compatibility. `SearchExperimentRunner` owns strategy scoring, deterministic tie-breaking, cancellation, state limits, common metrics, and path reconstruction behind one `run` interface.
+V2 introduces a deeper experiment seam alongside the legacy gameplay solver. `PuzzleDefinition` owns validated 5x4 content identity, movement-rule behavior, stable successor ordering, and state compatibility. `PuzzleState` is an immutable value snapshot. `SearchExperimentRunner` owns strategy scoring, deterministic tie-breaking, cancellation, state limits, metrics, path reconstruction, and exact `SearchExpansion` events behind one `run` interface.
+
+`SearchExpansion` records the expanded state, `g`, `h`, priority, frontier observations, and every legal candidate with an explicit `DISCOVERED`, `IMPROVED`, `REJECTED_NOT_BETTER`, or `STATE_LIMIT_REACHED` decision. Lab Mode retains the first 150 expansions plus every 500th milestone for interactive inspection; observers and tests may request the complete event stream. This sampling is a UI memory policy, not solver behavior.
+
+`SolutionReplay` validates the returned path once and exposes immutable state snapshots for previous/next/autoplay controls. `ExperimentRecord` captures the reproducible configuration, outcome, solution, deterministic metrics, elapsed observation, and runtime environment; `ExperimentRecordJson` is serialization only and never reimplements search.
 
 The legacy `HuaRongDaoSolver` remains the current Play Mode adapter while Lab Mode matures; stable v2 will remove duplicated solver behavior rather than maintain two independent rule implementations.
 
@@ -65,18 +74,31 @@ Board equality and a cached hash identify duplicate positions. `HuaRongDaoSolver
 
 The solver treats one one-cell translation of a piece as one move. Claims about move counts are meaningful only under that definition.
 
+## Lab view modules
+
+`LabPanel` coordinates lifecycle only. Stable presentation responsibilities live in smaller modules:
+
+- `ExperimentControlsPanel` owns puzzle, movement, strategy, weight, and run/cancel/export actions;
+- `SearchOverviewPanel` owns aggregate progress and the inspectable expansion timeline;
+- `StateInspectorPanel` explains one expansion and its candidate decisions;
+- `SolutionReplayPanel` owns replay navigation and autoplay;
+- `LabBoardView` renders the shared board used by selection, inspection, and replay.
+
+The workspace uses a themed `JSplitPane` with a narrow custom divider, explicit minimum widths, and `continuousLayout` enabled. Users can resize the board and explanation areas while the content follows the pointer instead of updating only after release.
+
 ## Local data
 
 Mutable data is stored under `${user.home}/.klotski-puzzle/`, never inside the JAR or source checkout.
 
-- Credentials use PBKDF2 hashes; this is a local profile mechanism, not online authentication.
+- Password registration and login have been removed. The start screen enters Play Mode or Lab Mode directly.
 - Saves store a readable board and a Base64-encoded validation copy for each step. Base64 is integrity-oriented encoding here, not encryption.
 - Writes use a temporary file followed by atomic replacement when the file system supports it.
 - An unrecoverable save is renamed with a `.corrupt-<timestamp>` suffix instead of being overwritten.
+- Legacy user files are never silently deleted by released builds; future Player Profile migration must be explicit.
 
 ## Deliberate limits
 
-- The 1532×864 window still uses absolute coordinates and is not yet responsive or high-DPI adaptive.
+- Lab Mode is covered at 1280×720 and uses a continuously updating resizable split workspace; Play Mode still contains legacy absolute positioning and is not yet fully high-DPI adaptive.
 - Automated tests cover rules, solving, persistence, and packaged resources; full robot-driven GUI tests are not included.
 - The project has three preset layouts rather than a validated free-form level editor.
 

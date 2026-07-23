@@ -4,6 +4,7 @@ import model.BoardRules;
 import model.MovementRule;
 import model.PuzzleDefinition;
 import model.PuzzleMove;
+import model.PuzzleState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,11 +65,20 @@ public final class SearchExperimentRunner {
     }
 
     public Result run(SearchExperiment experiment) {
-        return run(experiment, progress -> {
-        });
+        return runInternal(experiment, progress -> { }, null);
     }
 
     public Result run(SearchExperiment experiment, ProgressListener progressListener) {
+        return runInternal(experiment, progressListener, null);
+    }
+
+    public Result run(SearchExperiment experiment, SearchObserver observer) {
+        Objects.requireNonNull(observer, "observer");
+        return runInternal(experiment, observer::onProgress, observer);
+    }
+
+    private Result runInternal(SearchExperiment experiment, ProgressListener progressListener,
+                               SearchObserver observer) {
         Objects.requireNonNull(experiment, "experiment");
         Objects.requireNonNull(progressListener, "progressListener");
         long started = System.nanoTime();
@@ -99,36 +109,65 @@ public final class SearchExperimentRunner {
             if (current.pathCost != bestCosts.getOrDefault(current.key, Integer.MAX_VALUE)) {
                 continue;
             }
+            int frontierBefore = frontier.size();
             expandedStates++;
             if (puzzle.isSolved(current.board)) {
+                emitExpansion(observer, current, expandedStates, frontierBefore, frontier.size(),
+                        bestCosts.size(), true, List.of(), experiment);
                 progressListener.onProgress(progress(current, expandedStates, bestCosts.size(),
                         frontier.size(), experiment));
                 return result(Status.SOLVED, reconstruct(current), expandedStates, bestCosts.size(),
                         maximumFrontier, started);
             }
 
+            boolean observesExpansion = observer != null && observer.observesExpansion(expandedStates);
+            List<SearchExpansion.Candidate> candidates = !observesExpansion
+                    ? null : new ArrayList<>();
             for (PuzzleDefinition.Successor successor : puzzle.successors(current.board)) {
                 if (Thread.currentThread().isInterrupted()) {
                     return result(Status.CANCELLED, List.of(), expandedStates, bestCosts.size(),
                             maximumFrontier, started);
                 }
                 int nextCost = current.pathCost + 1;
-                BoardKey key = new BoardKey(successor.state());
+                int[][] successorBoard = successor.state();
+                BoardKey key = new BoardKey(successorBoard);
                 Integer knownCost = bestCosts.get(key);
+                int successorHeuristic = estimate(successorBoard, puzzle.movementRule());
                 if (knownCost == null && bestCosts.size() >= experiment.maxDiscoveredStates()) {
+                    if (candidates != null) {
+                        candidates.add(candidate(successor, successorBoard, nextCost,
+                                successorHeuristic, experiment, SearchDecision.STATE_LIMIT_REACHED,
+                                null));
+                    }
+                    emitExpansion(observesExpansion ? observer : null, current, expandedStates,
+                            frontierBefore, frontier.size(),
+                            bestCosts.size(), false, candidates, experiment);
                     return result(Status.STATE_LIMIT_REACHED, List.of(), expandedStates,
                             bestCosts.size(), maximumFrontier, started);
                 }
                 if (knownCost == null || nextCost < knownCost) {
-                    int[][] board = successor.state();
-                    Node next = new Node(board, nextCost,
-                            estimate(board, puzzle.movementRule()), nextSequence++, current,
+                    Node next = new Node(successorBoard, nextCost,
+                            successorHeuristic, nextSequence++, current,
                             successor.move());
                     bestCosts.put(next.key, nextCost);
                     frontier.add(next);
                     maximumFrontier = Math.max(maximumFrontier, frontier.size());
+                    if (candidates != null) {
+                        SearchDecision decision = knownCost == null
+                                ? SearchDecision.DISCOVERED : SearchDecision.IMPROVED;
+                        candidates.add(candidate(successor, successorBoard, nextCost,
+                                successorHeuristic, experiment, decision, knownCost));
+                    }
+                } else if (candidates != null) {
+                    candidates.add(candidate(successor, successorBoard, nextCost,
+                            successorHeuristic, experiment, SearchDecision.REJECTED_NOT_BETTER,
+                            knownCost));
                 }
             }
+
+            emitExpansion(observesExpansion ? observer : null, current, expandedStates,
+                    frontierBefore, frontier.size(),
+                    bestCosts.size(), false, candidates, experiment);
 
             if (expandedStates % PROGRESS_INTERVAL == 0) {
                 progressListener.onProgress(progress(current, expandedStates, bestCosts.size(),
@@ -138,6 +177,27 @@ public final class SearchExperimentRunner {
 
         return result(Status.NO_SOLUTION, List.of(), expandedStates, bestCosts.size(),
                 maximumFrontier, started);
+    }
+
+    private static SearchExpansion.Candidate candidate(PuzzleDefinition.Successor successor,
+                                                        int[][] state, int pathCost, int heuristic,
+                                                        SearchExperiment experiment,
+                                                        SearchDecision decision,
+                                                        Integer previousCost) {
+        return new SearchExpansion.Candidate(successor.move(), PuzzleState.of(state), pathCost,
+                heuristic, score(pathCost, heuristic, experiment), decision, previousCost);
+    }
+
+    private static void emitExpansion(SearchObserver observer, Node node, int index,
+                                      int frontierBefore, int frontierAfter, int discoveredStates,
+                                      boolean goal, List<SearchExpansion.Candidate> candidates,
+                                      SearchExperiment experiment) {
+        if (observer == null) {
+            return;
+        }
+        observer.onExpansion(new SearchExpansion(index, PuzzleState.of(node.board), node.pathCost,
+                node.heuristic, score(node.pathCost, node.heuristic, experiment), frontierBefore,
+                frontierAfter, discoveredStates, goal, candidates));
     }
 
     private static Comparator<Node> comparator(SearchExperiment experiment) {

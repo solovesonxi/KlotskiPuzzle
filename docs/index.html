@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KlotskiPuzzle — Java 22 Explainable Huarong Dao Algorithm Lab</title>
+  <meta name="description" content="Play Huarong Dao, inspect deterministic BFS and A* search decisions, replay solutions, and export experiments in an open-source Java 22 Swing application.">
+  <meta name="keywords" content="Klotski, Huarong Dao, Java Swing, A star algorithm, BFS, puzzle solver, algorithm visualization, Java 22">
+  <meta name="theme-color" content="#171519">
+  <link rel="canonical" href="https://44-99.github.io/KlotskiPuzzle/">
+  <link rel="stylesheet" href="site.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="KlotskiPuzzle — Play the puzzle, inspect the search">
+  <meta property="og:description" content="An open-source Java 22 Swing Huarong Dao game and explainable deterministic search lab.">
+  <meta property="og:url" content="https://44-99.github.io/KlotskiPuzzle/">
+  <meta property="og:image" content="https://44-99.github.io/KlotskiPuzzle/assets/social-preview.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "KlotskiPuzzle",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Windows, Linux, macOS",
+    "softwareVersion": "2.0.0-beta.1",
+    "description": "A Java 22 Swing Huarong Dao game and explainable deterministic search lab.",
+    "url": "https://44-99.github.io/KlotskiPuzzle/",
+    "codeRepository": "https://github.com/44-99/KlotskiPuzzle",
+    "downloadUrl": "https://github.com/44-99/KlotskiPuzzle/releases/tag/v2.0.0-beta.1",
+    "license": "https://github.com/44-99/KlotskiPuzzle/blob/main/LICENSE",
+    "programmingLanguage": "Java",
+    "isAccessibleForFree": true
+  }
+  </script>
+</head>
+<body>
+  <header class="nav shell">
+    <a class="brand" href="#top" aria-label="KlotskiPuzzle home">Klotski<span>Puzzle</span></a>
+    <nav aria-label="Primary navigation">
+      <a href="#features">Features</a>
+      <a href="#learn">For learners</a>
+      <a href="#zh">中文</a>
+      <a href="https://github.com/44-99/KlotskiPuzzle">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <p class="eyebrow">Java 22+ · Swing · Explainable search</p>
+        <h1>Play the puzzle.<br><em>Inspect the search.</em></h1>
+        <p class="lede">KlotskiPuzzle combines a playable Huarong Dao board with deterministic BFS, Greedy Best-First, A*, and Weighted A* experiments. See what the solver expands, why candidates are accepted or rejected, and how the final path moves the board.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/44-99/KlotskiPuzzle/releases/tag/v2.0.0-beta.1">Download v2 preview</a>
+          <a class="button secondary" href="https://github.com/44-99/KlotskiPuzzle">Read the source</a>
+        </div>
+        <p class="release-note">Windows portable package includes its own runtime. Source builds require Java 22+ and Maven 3.9+.</p>
+      </div>
+      <div class="demo-frame">
+        <img src="assets/demo-en.gif" alt="KlotskiPuzzle demonstrates background A star search and Swing solution playback" width="760" height="475">
+        <span>Actual project demo · original generated assets</span>
+      </div>
+    </section>
+
+    <section class="trust shell" aria-label="Project qualities">
+      <div><strong>4</strong><span>search strategies</span></div>
+      <div><strong>2</strong><span>movement contracts</span></div>
+      <div><strong>69</strong><span>automated tests</span></div>
+      <div><strong>MIT</strong><span>code and original assets</span></div>
+    </section>
+
+    <section id="features" class="section shell">
+      <p class="eyebrow">One result, three levels of explanation</p>
+      <h2>More than a timing table</h2>
+      <div class="cards">
+        <article>
+          <span class="number">01</span>
+          <h3>Search Overview</h3>
+          <p>Follow exact expanded, discovered, frontier, solution, and elapsed metrics while the experiment runs off the Swing event thread.</p>
+        </article>
+        <article>
+          <span class="number">02</span>
+          <h3>State Inspector</h3>
+          <p>Review an expanded board, its candidate moves, their scores, and the explicit reason each candidate entered or left consideration.</p>
+        </article>
+        <article>
+          <span class="number">03</span>
+          <h3>Solution Replay</h3>
+          <p>Step backward, play, pause, advance, or jump through a validated solution path, then export a versioned JSON Experiment Record.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="learn" class="section split shell">
+      <div>
+        <p class="eyebrow">Built for algorithm and Java learners</p>
+        <h2>From isolated examples to a runnable system</h2>
+        <p>Use one repository to study multi-cell puzzle modeling, shared human/solver movement rules, deterministic priority ordering, bounded search, background work, EDT-safe playback, bilingual Swing UI, persistence boundaries, and JUnit verification.</p>
+        <a class="text-link" href="https://github.com/44-99/KlotskiPuzzle/blob/main/docs/ARCHITECTURE.md">Explore the architecture →</a>
+      </div>
+      <div class="code-card" aria-label="Quick start commands">
+        <div class="code-title"><span></span><span></span><span></span>Quick start</div>
+        <pre><code>git clone https://github.com/44-99/KlotskiPuzzle.git
+cd KlotskiPuzzle
+mvn clean verify
+mvn exec:java</code></pre>
+      </div>
+    </section>
+
+    <section class="section shell boundary">
+      <div>
+        <p class="eyebrow">Transparent preview boundary</p>
+        <h2>Useful now, not pretending to be finished</h2>
+      </div>
+      <p>The v2.0.0-beta.1 preview includes the interactive walkthrough, inspector, replay, and JSON export. Puzzle import/export, complete compressed traces, algorithm comparison, HTML reports, and broader responsive Play Mode work remain on the public roadmap.</p>
+      <a class="button secondary" href="https://github.com/44-99/KlotskiPuzzle/blob/main/ROADMAP.md">View roadmap</a>
+    </section>
+
+    <section id="zh" class="section shell chinese">
+      <p class="eyebrow">简体中文</p>
+      <h2>可玩的华容道，也是可解释的算法实验室</h2>
+      <p>KlotskiPuzzle 面向算法学习者、Java 学生和初级开发者。你可以运行 BFS、贪心最佳优先、A* 与加权 A*，查看搜索概览、检查候选状态为什么被接受或拒绝、逐步回放最终解法，并导出可复查的 JSON 实验记录。</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/44-99/KlotskiPuzzle/releases/tag/v2.0.0-beta.1">下载 v2 预览版</a>
+        <a class="button secondary" href="https://github.com/44-99/KlotskiPuzzle/blob/main/README_ZH.md">阅读中文文档</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <p>KlotskiPuzzle · Open source under the MIT License</p>
+    <div><a href="https://github.com/44-99/KlotskiPuzzle/issues">Issues</a><a href="https://github.com/44-99/KlotskiPuzzle/discussions">Discussions</a><a href="https://github.com/44-99/KlotskiPuzzle/releases">Releases</a></div>
+  </footer>
+</body>
+</html>
