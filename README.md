@@ -19,6 +19,7 @@
   <p>
     <a href="docs/ARCHITECTURE.md">Architecture</a> ·
     <a href="docs/ART_DIRECTION.md">Art direction</a> ·
+    <a href="docs/V2_PLAN.md">V2 plan</a> ·
     <a href="ROADMAP.md">Roadmap</a> ·
     <a href="CHANGELOG.md">Changelog</a> ·
     <a href="CONTRIBUTING.md">Contributing</a> ·
@@ -33,6 +34,8 @@
 KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) that evolved from a Java GUI course project. Its primary audience is students and junior Java developers who know the language basics and want to build their first project combining a desktop UI with a search algorithm.
 
 The repository is not positioned as a production-ready commercial game. It demonstrates how to organize multi-cell movement rules, a playable UI, A* search, background work, animated playback, local saves, and automated tests into a project that can be run, verified, and extended.
+
+The current application is the playable baseline for an in-development Java 22 explainable Huarong Dao algorithm lab. The agreed product scope, terminology, experiment contract, and stable-v2 completion criteria are recorded in the [v2 plan](docs/V2_PLAN.md) and [domain context](CONTEXT.md); planned capabilities are not presented below as already shipped.
 
 ## Why This Project Exists
 

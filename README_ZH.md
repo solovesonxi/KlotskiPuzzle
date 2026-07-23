@@ -19,6 +19,7 @@
   <p>
     <a href="docs/ARCHITECTURE.md">架构说明</a> ·
     <a href="docs/ART_DIRECTION.md">视觉与音频规范</a> ·
+    <a href="docs/V2_PLAN.md">V2 规划</a> ·
     <a href="ROADMAP.md">开发路线</a> ·
     <a href="CHANGELOG.md">更新记录</a> ·
     <a href="CONTRIBUTING_ZH.md">参与贡献</a> ·
@@ -33,6 +34,8 @@
 KlotskiPuzzle 是一个从 Java GUI 课程项目演进而来的 Java 22+ Swing 华容道参考实现。它主要面向已经掌握 Java 基础、准备完成第一个 GUI 与算法综合项目的学生和初级开发者。
 
 这个仓库的重点不是提供成熟的商业游戏客户端，而是展示如何把多格棋子规则、可玩的桌面界面、A* 搜索、后台任务、动画回放、本地存档和自动化测试组织成一个可运行、可验证、可继续改造的工程。
+
+当前应用是 Java 22 可解释华容道算法实验室的可玩基线。已经确认的产品范围、领域术语、实验契约和稳定版 v2 完成标准记录在 [v2 规划](docs/V2_PLAN.md) 与 [领域上下文](CONTEXT.md) 中；下文不会把规划中的能力描述为已经发布的功能。
 
 ## 为什么有这个项目
 

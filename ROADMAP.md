@@ -1,29 +1,41 @@
 # KlotskiPuzzle roadmap
 
-This roadmap keeps the project focused on its primary audience: Java students, junior developers, and learners studying Swing, state modeling, and A* search. It is not a promise of dates; it explains what belongs in the project and what does not.
+KlotskiPuzzle is evolving from a playable Java Swing Huarong Dao reference into a Java 22 explainable algorithm lab. The detailed stable-v2 contract is recorded in [docs/V2_PLAN.md](docs/V2_PLAN.md); the canonical domain language lives in [CONTEXT.md](CONTEXT.md).
 
-## Now
+## Current baseline
 
-- Complete and test English and Simplified Chinese runtime messages.
-- Keep Java 22 builds, packaged resources, solver paths, and persistence behavior reproducible in CI.
-- Produce both an executable JAR and a portable Windows application for tagged releases.
+- Play three validated 5x4 layouts with press-and-slide, arrow-key, or WASD input.
+- Run bounded A* search off the Swing event-dispatch thread and replay its solution.
+- Switch English and Simplified Chinese at runtime.
+- Build and verify with Java 22+, Maven, JUnit, and GitHub Actions.
+- Package original programmatically generated runtime media and a portable Windows application.
 
-## Next
+## V2 foundation
 
-- Replace fixed 1532×864 positioning with layouts that remain usable on smaller screens and high-DPI displays.
-- Add pause, single-step, and speed controls to AI playback so learners can inspect each move.
-- Record a real bilingual gameplay walkthrough after the responsive layout is visually verified.
+- Introduce versioned Puzzle Definitions, explicit Cell Step and Piece Move rules, and stable Puzzle Presets.
+- Separate Play Mode sessions from Lab Mode Search Experiments while sharing rule and rendering modules.
+- Define deterministic search events, Experiment Records, and qualified environment observations.
+- Replace password accounts with optional local Player Profiles and user-controlled legacy migration.
 
-## Later
+## V2 lab experience
 
-- Add a validated level editor with import/export for reproducible boards.
-- Compare BFS, Dijkstra, and A* under the same move definition and benchmark contract.
-- Add focused GUI lifecycle tests where they provide stable value.
+- Add Search Overview, State Inspector, and Solution Replay.
+- Compare BFS, Greedy Best-First Search, A*, and Weighted A* under one declared experiment contract.
+- Import and export validated 5x4 custom puzzles.
+- Export optional compressed traces and self-contained read-only HTML Experiment Reports.
+- Keep the interface usable at 1280x720 and common Windows display scaling.
+
+## After stable v2
+
+- Build a visual puzzle editor on the validated Puzzle Definition module.
+- Add deeper heuristic experiments and curated teaching walkthroughs.
+- Expand stable GUI lifecycle coverage where it provides reproducible value.
 
 ## Not planned
 
+- Arbitrary sliding-block engines in stable v2.
+- A duplicate JavaScript solver or complete web game.
 - Online accounts, cloud leaderboards, multiplayer, or a server backend.
-- Rewriting the project in a web framework merely to broaden the technology list.
-- Features that bypass `BoardRules` or weaken the small, readable teaching architecture.
+- Features that bypass shared puzzle rules or trade reproducibility for unexplained benchmark numbers.
 
 Ideas are welcome in [GitHub Discussions](https://github.com/44-99/KlotskiPuzzle/discussions). Scoped bugs and implementation-ready requests belong in [GitHub Issues](https://github.com/44-99/KlotskiPuzzle/issues).
