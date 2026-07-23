@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import static util.Messages.text;
+
 public class LoginPanel extends JPanel {
     private final MainFrame mainFrame; // 主窗口引用
     private final Image backgroundImage;
@@ -26,7 +28,7 @@ public class LoginPanel extends JPanel {
         try {
             users = new UserRepository();
         } catch (IOException exception) {
-            JOptionPane.showMessageDialog(this, "无法初始化本地玩家数据：" + exception.getMessage());
+            JOptionPane.showMessageDialog(this, text("login.data.init.error", exception.getMessage()));
         }
 
         contentPanel = new JPanel();
@@ -39,16 +41,16 @@ public class LoginPanel extends JPanel {
         // 创建用户名和密码输入框
         username = ViewUtil.createJTextField(contentPanel, new Point(width / 2 - 40, height / 2 - 100), 160, 30);
         password = ViewUtil.createJPasswordField(contentPanel, new Point(width / 2 - 40, height / 2 - 50), 160, 30);
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 100), 70, 30, 16, "用户名:"); // 用户名标签
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 50), 70, 30, 16, "密码:"); // 密码标签
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 300), 240, 120, 60, "华 容 道"); // 游戏标题
+        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 100), 90, 30, 16, text("login.username")); // 用户名标签
+        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 50), 90, 30, 16, text("login.password")); // 密码标签
+        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 180, height / 2 - 300), 380, 120, 48, text("login.title")); // 游戏标题
 
         // 登录注册按钮
         Color btnColor = new Color(139, 69, 19); // 按钮颜色
         Font btnFont = new Font("楷体", Font.PLAIN, 16); // 按钮字体
-        JButton loginBtn = ViewUtil.createStyledButton(contentPanel, "登录", new Point(width / 2 - 80, height / 2 + 30), 80, 30, btnColor, btnFont);
-        JButton registerBtn = ViewUtil.createStyledButton(contentPanel, "注册", new Point(width / 2 + 20, height / 2 + 30), 80, 30, btnColor, btnFont);
-        JButton guestLoginBtn = ViewUtil.createStyledButton(contentPanel, "游客登录", new Point(width / 2 - 80, height / 2 + 80), 180, 32, btnColor, btnFont);
+        JButton loginBtn = ViewUtil.createStyledButton(contentPanel, text("login.sign.in"), new Point(width / 2 - 100, height / 2 + 30), 100, 30, btnColor, btnFont);
+        JButton registerBtn = ViewUtil.createStyledButton(contentPanel, text("login.register"), new Point(width / 2 + 20, height / 2 + 30), 100, 30, btnColor, btnFont);
+        JButton guestLoginBtn = ViewUtil.createStyledButton(contentPanel, text("login.guest"), new Point(width / 2 - 100, height / 2 + 80), 220, 32, btnColor, btnFont);
         loginBtn.addActionListener(event -> handleLogin()); // 登录按钮事件
         registerBtn.addActionListener(event -> handleRegister()); // 注册按钮事件
         guestLoginBtn.addActionListener(event -> mainFrame.showControl(null)); // 游客登录事件
@@ -63,11 +65,11 @@ public class LoginPanel extends JPanel {
     // 验证用户名和密码
     public boolean isValidCredentials(String user, String pass) {
         if (user.isEmpty() || pass.isEmpty()) { // 检查是否为空
-            JOptionPane.showMessageDialog(this, "用户名或密码不能为空");
+            JOptionPane.showMessageDialog(this, text("login.credentials.required"));
         } else if (Pattern.matches("^[a-zA-Z0-9一-龥]+$", user) && Pattern.matches("^[a-zA-Z0-9]+$", pass)) {
             return true; // 验证通过
         } else {
-            JOptionPane.showMessageDialog(this, "用户名只能包含数字、汉字和大小写字母\n密码只能包含数字和大小写字母");
+            JOptionPane.showMessageDialog(this, text("login.credentials.syntax"));
         }
         return false;
     }
@@ -81,11 +83,11 @@ public class LoginPanel extends JPanel {
                 if (users != null && users.verify(user, pass)) {
                 mainFrame.showControl(user); // 显示控制面板
                 } else {
-                    JOptionPane.showMessageDialog(this, "用户名或密码错误");
+                    JOptionPane.showMessageDialog(this, text("login.credentials.invalid"));
                 }
             }
         } catch (IOException exception) {
-            JOptionPane.showMessageDialog(this, "读取玩家数据失败：" + exception.getMessage());
+            JOptionPane.showMessageDialog(this, text("login.read.error", exception.getMessage()));
         } finally {
             Arrays.fill(pass, '\0');
         }
@@ -98,14 +100,14 @@ public class LoginPanel extends JPanel {
         try {
             if (isValidCredentials(user, new String(pass))) {
                 if (users != null && users.register(user, pass)) {
-                    JOptionPane.showMessageDialog(this, "本地玩家创建成功");
+                    JOptionPane.showMessageDialog(this, text("login.register.success"));
                     mainFrame.showControl(user);
                 } else {
-                    JOptionPane.showMessageDialog(this, "该用户名已被注册");
+                    JOptionPane.showMessageDialog(this, text("login.register.exists"));
                 }
             }
         } catch (IOException exception) {
-            JOptionPane.showMessageDialog(this, "保存玩家数据失败：" + exception.getMessage());
+            JOptionPane.showMessageDialog(this, text("login.write.error", exception.getMessage()));
         } finally {
             Arrays.fill(pass, '\0');
         }

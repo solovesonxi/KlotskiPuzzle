@@ -8,6 +8,8 @@ All notable changes to KlotskiPuzzle are documented here.
 - Add a command-line report for fresh solver status, path, search, and timing metrics.
 - Make English the default GitHub README, retain a Chinese switch, and generate locale-specific demo GIFs.
 - Add matching English and Chinese contribution guides.
+- Add complete English and Simplified Chinese runtime messages with `--lang` selection and bundle parity tests.
+- Keep countdown state in the game model instead of parsing localized label text.
 
 ## 1.0.0 - 2026-07-23
 

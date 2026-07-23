@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static util.Messages.text;
+
 /** Coordinates player input, movement animation, and the current game session. */
 public final class GameController {
     private static final String MOVE_SOUND =
@@ -139,10 +141,8 @@ public final class GameController {
             soundEffects.play(DEFEAT_SOUND);
         }
 
-        String title = checkSolved
-                ? "恭喜你过关了！共用了" + view.steps + "步！"
-                : "倒计时为0，游戏失败！";
-        int choice = JOptionPane.showConfirmDialog(view, "是否重新开始游戏？", title,
+        String title = checkSolved ? text("game.victory", view.steps) : text("game.defeat");
+        int choice = JOptionPane.showConfirmDialog(view, text("game.restart.prompt"), title,
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (choice == JOptionPane.YES_OPTION) {
             restartGame();
@@ -159,7 +159,7 @@ public final class GameController {
             repository.add(new LeaderboardRepository.ScoreEntry(
                     user, view.steps, readRemainingSeconds()));
         } catch (IOException | IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(view, "保存战绩时发生错误: " + exception.getMessage());
+            JOptionPane.showMessageDialog(view, text("game.score.save.error", exception.getMessage()));
         }
     }
 
@@ -168,7 +168,7 @@ public final class GameController {
             return;
         }
         if (history.size() <= 1) {
-            JOptionPane.showMessageDialog(view, "没有更多的撤销操作");
+            JOptionPane.showMessageDialog(view, text("game.undo.empty"));
             return;
         }
         history.removeLast();
@@ -181,12 +181,12 @@ public final class GameController {
             return;
         }
         if (user == null || user.isBlank()) {
-            JOptionPane.showMessageDialog(view, "请先登录");
+            JOptionPane.showMessageDialog(view, text("game.login.required"));
             return;
         }
         try {
             if (!saves.exists(user)) {
-                JOptionPane.showMessageDialog(view, user + "还没有保存过历史游戏数据");
+                JOptionPane.showMessageDialog(view, text("game.save.missing", user));
                 return;
             }
             GameSaveRepository.SavedGame saved = saves.load(user);
@@ -195,14 +195,16 @@ public final class GameController {
             history.addAll(saved.history());
             view.initialGame(saved.steps(), saved.remainingSeconds());
             if (saved.recoveredEntries() > 0) {
-                JOptionPane.showMessageDialog(view,
-                        "已从校验副本恢复 " + saved.recoveredEntries() + " 条历史记录。");
+                JOptionPane.showMessageDialog(view, text("game.save.recovered", saved.recoveredEntries()));
             }
         } catch (GameSaveRepository.CorruptSaveException exception) {
-            JOptionPane.showMessageDialog(view,
-                    exception.getMessage() + "，原文件已保留为：\n" + exception.backupPath());
+            String reason = switch (exception.reason()) {
+                case EMPTY -> text("game.save.corrupt.empty");
+                case INVALID -> text("game.save.corrupt.invalid", exception.detail());
+            };
+            JOptionPane.showMessageDialog(view, text("game.save.corrupt", reason, exception.backupPath()));
         } catch (IOException | IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(view, "读取存档时发生错误: " + exception.getMessage());
+            JOptionPane.showMessageDialog(view, text("game.save.read.error", exception.getMessage()));
         }
     }
 
@@ -211,14 +213,14 @@ public final class GameController {
             return;
         }
         if (user == null || user.isBlank()) {
-            JOptionPane.showMessageDialog(view, "游客模式不保存本地进度");
+            JOptionPane.showMessageDialog(view, text("game.save.guest"));
             return;
         }
         try {
             saves.save(user, new GameSaveRepository.SavedGame(
                     view.steps, readRemainingSeconds(), history, 0));
         } catch (IOException | IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(view, "保存游戏时发生错误: " + exception.getMessage());
+            JOptionPane.showMessageDialog(view, text("game.save.write.error", exception.getMessage()));
         }
     }
 
@@ -233,13 +235,7 @@ public final class GameController {
     }
 
     private int readRemainingSeconds() {
-        String text = view.countdownLabel.getText();
-        int separator = text.indexOf('：');
-        int suffix = text.indexOf('息');
-        if (separator < 0 || suffix <= separator) {
-            throw new IllegalArgumentException("无法读取剩余时间");
-        }
-        return Integer.parseInt(text.substring(separator + 1, suffix));
+        return view.getRemainingSeconds();
     }
 
     private boolean ensureIdle() {
@@ -247,7 +243,7 @@ public final class GameController {
             return false;
         }
         if (animating) {
-            JOptionPane.showMessageDialog(view, "请等待当前移动动画结束");
+            JOptionPane.showMessageDialog(view, text("common.animation.wait"));
             return false;
         }
         return true;

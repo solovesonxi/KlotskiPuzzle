@@ -16,6 +16,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static util.Messages.text;
+
 // 游戏的主窗口，负责显示登录界面和游戏控制面板
 public class MainFrame extends JFrame implements WindowListener {
     private static final List<String> MUSIC_RESOURCES = List.of(
@@ -32,7 +34,7 @@ public class MainFrame extends JFrame implements WindowListener {
     private final BackgroundMusicPlayer musicPlayer;
 
     public MainFrame(int width, int height) {
-        super("KlotskiPuzzle · 华容道");
+        super(text("app.title"));
         this.setSize(width, height);
         this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         this.setLocationRelativeTo(null); // 窗口居中显示
@@ -45,16 +47,16 @@ public class MainFrame extends JFrame implements WindowListener {
         // 音乐播放按钮
         soundBtn = ViewUtil.createMusicButton(
                 "resources/original/image/icons/play.png", new Point(width - 135, 10),
-                "播放背景音乐", "播放背景音乐");
+                text("music.play"), text("music.play"));
         soundBtn.addActionListener(event -> toggleBGM()); // 切换背景音乐
         lastBtn = ViewUtil.createMusicButton(
                 "resources/original/image/icons/previous.png", new Point(width - 197, 10),
-                "上一首背景音乐", "播放上一首背景音乐");
+                text("music.previous"), text("music.previous.tooltip"));
         lastBtn.addActionListener(event -> playTrack(false)); // 播放上一首音乐
         ViewUtil.addButtonMouseListener(lastBtn, "resources/original/image/icons/previous.png");
         nextBtn = ViewUtil.createMusicButton(
                 "resources/original/image/icons/next.png", new Point(width - 75, 10),
-                "下一首背景音乐", "播放下一首背景音乐");
+                text("music.next"), text("music.next.tooltip"));
         nextBtn.addActionListener(event -> playTrack(true)); // 播放下一首音乐
         ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
 
@@ -76,10 +78,11 @@ public class MainFrame extends JFrame implements WindowListener {
     public void windowClosing(WindowEvent e) {
         if (controlPanel != null && controlPanel.isVisible() && controlPanel.controller != null && controlPanel.controller.user != null) {
             if (controlPanel.controller.isAnimating()) {
-                JOptionPane.showMessageDialog(this, "请等待当前移动动画结束");
+                JOptionPane.showMessageDialog(this, text("common.animation.wait"));
                 return;
             }
-            int choice = JOptionPane.showConfirmDialog(this, "是否保存游戏？", "退出游戏", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            int choice = JOptionPane.showConfirmDialog(this, text("game.exit.save.prompt"),
+                    text("game.exit.title"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (JOptionPane.YES_OPTION == choice) {
                 controlPanel.controller.saveGame();
                 exitApplication();
@@ -147,7 +150,7 @@ public class MainFrame extends JFrame implements WindowListener {
             try {
                 audioResources.add(AppResources.url(path));
             } catch (IllegalArgumentException exception) {
-                System.out.println("跳过缺失的背景音乐: " + path);
+                System.out.println(text("music.missing", path));
             }
         }
         return audioResources;
@@ -164,7 +167,7 @@ public class MainFrame extends JFrame implements WindowListener {
     }
 
     private void updateSoundButton(boolean playing) {
-        String actionText = playing ? "暂停背景音乐" : "播放背景音乐";
+        String actionText = playing ? text("music.pause") : text("music.play");
         soundBtn.setIcon(AppResources.icon(playing
                 ? "resources/original/image/icons/pause.png"
                 : "resources/original/image/icons/play.png"));

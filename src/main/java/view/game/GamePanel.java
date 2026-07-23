@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static util.Messages.text;
+
 // 游戏面板，显示棋盘和方块
 public class GamePanel extends ListenerPanel {
     private final List<BoxComponent> boxes; // 存储方块组件
@@ -22,6 +24,7 @@ public class GamePanel extends ListenerPanel {
     public JLabel stepLabel; // 步数标签
     public JLabel countdownLabel; //倒计时标签
     public int steps; // 当前步数
+    private int remainingSeconds;
     public Timer countdownTimer; // 倒计时计时器
 
     public GamePanel(MapModel model) {
@@ -39,19 +42,19 @@ public class GamePanel extends ListenerPanel {
     // 初始化棋盘图像
     public void initialGame(int step, int countdown) {
         this.steps = step; // 更新步数
-        if (this.stepLabel != null) this.stepLabel.setText(String.format("行军步数：%d", steps));
+        if (this.stepLabel != null) this.stepLabel.setText(text("status.steps", steps));
         if (countdown > 0) {
-            if (this.countdownLabel != null) this.countdownLabel.setText(String.format("剩余时限：%d息", countdown));
-            final int[] finalCountDown = {countdown};
+            remainingSeconds = countdown;
+            if (this.countdownLabel != null) this.countdownLabel.setText(text("status.countdown", remainingSeconds));
             if (countdownTimer != null) {
                 countdownTimer.stop();
             }
             countdownTimer = new Timer(1000, event -> { // 每秒减少倒计时时间
-                if (finalCountDown[0] > 0) {
-                    finalCountDown[0]--;
+                if (remainingSeconds > 0) {
+                    remainingSeconds--;
                     if (countdownLabel != null)
-                        countdownLabel.setText(String.format("剩余时限：%d息", finalCountDown[0]));
-                    if (finalCountDown[0] <= 0) {
+                        countdownLabel.setText(text("status.countdown", remainingSeconds));
+                    if (remainingSeconds <= 0) {
                         countdownTimer.stop();
                         controller.endGame(false); // 倒计时结束，游戏失败
                     }
@@ -147,7 +150,6 @@ public class GamePanel extends ListenerPanel {
     @Override
     public void doMoveRight() {
         if (selectedBox != null) {
-            System.out.print("玩家向右: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.RIGHT)) {
                 afterMove(); // 更新步数
             }
@@ -157,7 +159,6 @@ public class GamePanel extends ListenerPanel {
     @Override
     public void doMoveLeft() {
         if (selectedBox != null) {
-            System.out.print("玩家向左: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.LEFT)) {
                 afterMove(); // 更新步数
             }
@@ -167,7 +168,6 @@ public class GamePanel extends ListenerPanel {
     @Override
     public void doMoveUp() {
         if (selectedBox != null) {
-            System.out.print("玩家向上: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.UP)) {
                 afterMove(); // 更新步数
             }
@@ -177,7 +177,6 @@ public class GamePanel extends ListenerPanel {
     @Override
     public void doMoveDown() {
         if (selectedBox != null) {
-            System.out.print("玩家向下: ");
             if (controller.doMove(selectedBox.getRow(), selectedBox.getCol(), Direction.DOWN)) {
                 afterMove(); // 更新步数
             }
@@ -187,13 +186,15 @@ public class GamePanel extends ListenerPanel {
     // 更新步数
     public void afterMove() {
         this.steps++;
-        this.stepLabel.setText(String.format("行军步数：%d", this.steps));
+        this.stepLabel.setText(text("status.steps", this.steps));
     }
 
     // 设置标签（行军步数和倒计时）
     public void setLabel(JLabel stepLabel, JLabel countdownLabel) {
         this.stepLabel = stepLabel;
         this.countdownLabel = countdownLabel;
+        this.stepLabel.setText(text("status.steps", steps));
+        this.countdownLabel.setText(text("status.countdown", remainingSeconds));
     }
 
     // AI移动
@@ -201,7 +202,6 @@ public class GamePanel extends ListenerPanel {
         for (BoxComponent box : boxes) {
             if (box.getRow() == row && box.getCol() == col) {
                 selectedBox = box;
-                System.out.print("AI" + "向" + (direction == Direction.UP ? "上" : (direction == Direction.DOWN ? "下" : (direction == Direction.LEFT ? "左" : "右"))) + ": ");
                 if (controller.doMove(box.getRow(), box.getCol(), direction)) afterMove(); // 更新步数
                 break;
             }
@@ -218,5 +218,9 @@ public class GamePanel extends ListenerPanel {
 
     public int getGRID_SIZE() {
         return GRID_SIZE; // 获取网格大小
+    }
+
+    public int getRemainingSeconds() {
+        return remainingSeconds;
     }
 }

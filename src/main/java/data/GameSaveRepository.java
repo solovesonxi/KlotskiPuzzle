@@ -56,11 +56,28 @@ public final class GameSaveRepository {
     }
 
     public static final class CorruptSaveException extends IOException {
+        public enum Reason {
+            EMPTY,
+            INVALID
+        }
+
+        private final Reason reason;
+        private final String detail;
         private final Path backupPath;
 
-        CorruptSaveException(String message, Path backupPath) {
-            super(message);
+        CorruptSaveException(Reason reason, String detail, Path backupPath) {
+            super(reason + (detail == null ? "" : ": " + detail));
+            this.reason = reason;
+            this.detail = detail;
             this.backupPath = backupPath;
+        }
+
+        public Reason reason() {
+            return reason;
+        }
+
+        public String detail() {
+            return detail;
         }
 
         public Path backupPath() {
@@ -76,7 +93,7 @@ public final class GameSaveRepository {
         Path path = fileFor(username);
         List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
         if (lines.isEmpty() || lines.getFirst().isBlank()) {
-            throw quarantine(path, "历史游戏数据为空");
+            throw quarantine(path, CorruptSaveException.Reason.EMPTY, null);
         }
 
         try {
@@ -110,7 +127,7 @@ public final class GameSaveRepository {
             }
             return new SavedGame(steps, remainingSeconds, history, recoveredEntries);
         } catch (IllegalArgumentException exception) {
-            throw quarantine(path, "历史游戏数据损坏：" + exception.getMessage());
+            throw quarantine(path, CorruptSaveException.Reason.INVALID, exception.getMessage());
         }
     }
 
@@ -207,10 +224,11 @@ public final class GameSaveRepository {
         }
     }
 
-    private static CorruptSaveException quarantine(Path path, String message) throws IOException {
+    private static CorruptSaveException quarantine(Path path, CorruptSaveException.Reason reason,
+                                                    String detail) throws IOException {
         Path backup = path.resolveSibling(path.getFileName() + ".corrupt-" + System.currentTimeMillis());
         Files.move(path, backup, StandardCopyOption.REPLACE_EXISTING);
-        return new CorruptSaveException(message, backup);
+        return new CorruptSaveException(reason, detail, backup);
     }
 
     private Path fileFor(String username) throws IOException {

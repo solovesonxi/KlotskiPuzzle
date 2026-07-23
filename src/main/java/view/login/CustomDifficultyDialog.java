@@ -8,13 +8,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
+import static util.Messages.text;
+
 public class CustomDifficultyDialog extends JDialog {
     private Difficulty selectedDifficulty = Difficulty.BEGINNER; // 关闭对话框时使用默认难度
     private final Color DARK_BROWN = new Color(54, 35, 23); // 深棕色
     private final Color GOLD = new Color(205, 170, 109); // 金色
 
     public CustomDifficultyDialog(JFrame parent) {
-        super(parent, "开始游戏", true);
+        super(parent, text("difficulty.dialog.title"), true);
         setupUI();
         setSize(553, 300);
         setLocationRelativeTo(parent);
@@ -24,7 +26,7 @@ public class CustomDifficultyDialog extends JDialog {
     // 设置用户界面
     private void setupUI() {
         JPanel contentPane = getPanel();
-        JLabel title = new JLabel("请选择难度", SwingConstants.CENTER);
+        JLabel title = new JLabel(text("difficulty.dialog.prompt"), SwingConstants.CENTER);
         title.setFont(new Font("篆体", Font.BOLD, 24));
         title.setForeground(DARK_BROWN);
         title.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0)); // 设置边界

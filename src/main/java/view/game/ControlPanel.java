@@ -11,6 +11,8 @@ import view.ViewUtil;
 import javax.swing.*;
 import java.awt.*;
 
+import static util.Messages.text;
+
 // 游戏控制面板，包含游戏操作按钮和状态信息
 public class ControlPanel extends JPanel {
     private final MainFrame mainFrame; // 主窗口引用
@@ -59,22 +61,23 @@ public class ControlPanel extends JPanel {
         int buttonWidth = 120; // 按钮宽度
         int buttonHeight = 50; // 按钮高度
         // 右侧功能按钮组
-        restartBtn = ViewUtil.createStyledButton(contentPanel, "重整旗鼓", new Point(width / 2 + 380, height / 2 - 250), buttonWidth, buttonHeight, btnColor, btnFont);
-        loadBtn = ViewUtil.createStyledButton(contentPanel, "切换战场", new Point(width / 2 + 380, height / 2 - 150), buttonWidth, buttonHeight, btnColor, btnFont);
-        undoBtn = ViewUtil.createStyledButton(contentPanel, "撤军回防", new Point(width / 2 + 380, height / 2-50), buttonWidth, buttonHeight, btnColor, btnFont);
-        AIBtn = ViewUtil.createStyledButton(contentPanel, "军师献策", new Point(width / 2 + 380, height / 2 + 50), buttonWidth, buttonHeight, btnColor, btnFont);
-        logoutBtn = ViewUtil.createStyledButton(contentPanel, "退出战场", new Point(width / 2 + 380, height / 2 + 150), buttonWidth, buttonHeight, btnColor, btnFont);
-        showRankBtn = ViewUtil.createStyledButton(contentPanel, "<html>战<br>功<br>榜</html>", new Point(0, height / 2 - 100), 80, 200, new Color(54, 35, 28),new Font("华文行楷", Font.PLAIN, 28));
-        ViewUtil.createExitButton(contentPanel, "华容道出口", new Point(width / 2 -100, height - 230), 200, 80, new Color(72, 60, 50, 200), new Font("华文行楷", Font.PLAIN, 30));
+        restartBtn = ViewUtil.createStyledButton(contentPanel, text("control.restart"), new Point(width / 2 + 380, height / 2 - 250), buttonWidth, buttonHeight, btnColor, btnFont);
+        loadBtn = ViewUtil.createStyledButton(contentPanel, text("control.load"), new Point(width / 2 + 380, height / 2 - 150), buttonWidth, buttonHeight, btnColor, btnFont);
+        undoBtn = ViewUtil.createStyledButton(contentPanel, text("control.undo"), new Point(width / 2 + 380, height / 2-50), buttonWidth, buttonHeight, btnColor, btnFont);
+        AIBtn = ViewUtil.createStyledButton(contentPanel, text("control.ai"), new Point(width / 2 + 380, height / 2 + 50), buttonWidth, buttonHeight, btnColor, btnFont);
+        logoutBtn = ViewUtil.createStyledButton(contentPanel, text("control.logout"), new Point(width / 2 + 380, height / 2 + 150), buttonWidth, buttonHeight, btnColor, btnFont);
+        showRankBtn = ViewUtil.createStyledButton(contentPanel, text("control.leaderboard"), new Point(0, height / 2 - 100), 100, 200, new Color(54, 35, 28),new Font("华文行楷", Font.PLAIN, 24));
+        ViewUtil.createExitButton(contentPanel, text("control.exit"), new Point(width / 2 -100, height - 230), 200, 80, new Color(72, 60, 50, 200), new Font("华文行楷", Font.PLAIN, 30));
         // 方向控制按钮组
-        upBtn = ViewUtil.createAncientButton(contentPanel, "↑ 进", new Point(width / 2 - 470, height / 2 - 100), 80, 60);
-        downBtn = ViewUtil.createAncientButton(contentPanel, "↓ 退", new Point(width / 2 - 470, height / 2 + 40), 80, 60);
-        leftBtn = ViewUtil.createAncientButton(contentPanel, "← 左翼", new Point(width / 2 - 590, height / 2 - 30), 100, 50);
-        rightBtn = ViewUtil.createAncientButton(contentPanel, "右翼 →", new Point(width / 2 - 370, height / 2 - 30), 100, 50);
+        upBtn = ViewUtil.createAncientButton(contentPanel, text("control.up"), new Point(width / 2 - 470, height / 2 - 100), 80, 60);
+        downBtn = ViewUtil.createAncientButton(contentPanel, text("control.down"), new Point(width / 2 - 470, height / 2 + 40), 80, 60);
+        leftBtn = ViewUtil.createAncientButton(contentPanel, text("control.left"), new Point(width / 2 - 590, height / 2 - 30), 100, 50);
+        rightBtn = ViewUtil.createAncientButton(contentPanel, text("control.right"), new Point(width / 2 - 370, height / 2 - 30), 100, 50);
         // 状态标签
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 370), 400, 120, 36, user == null ? "游侠身份" : "将军：" + user);
-        JLabel stepLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 280), 240, 100, 28, "行军步数：0");
-        JLabel countdownLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 200), 240, 100, 28, "剩余时限：120息");
+        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 370), 400, 120, 32,
+                user == null ? text("control.guest") : text("control.player", user));
+        JLabel stepLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 280), 300, 100, 26, text("status.steps", 0));
+        JLabel countdownLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 520, height / 2 - 200), 300, 100, 26, text("status.countdown", 180));
 
         gamePanel = new GamePanel(mapModel);
         gamePanel.setLabel(stepLabel, countdownLabel);
@@ -150,14 +153,15 @@ public class ControlPanel extends JPanel {
     // 显示确认对话框
     private void showConfirmationDialog(String user) {
         if (controller.isAnimating()) {
-            JOptionPane.showMessageDialog(this, "请等待当前移动动画结束");
+            JOptionPane.showMessageDialog(this, text("common.animation.wait"));
             return;
         }
         gamePanel.countdownTimer.stop(); // 停止计时器
         if (user == null) {
             mainFrame.showLogin();
         } else {
-            int response = JOptionPane.showConfirmDialog(this, "是否保存游戏进度？", "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            int response = JOptionPane.showConfirmDialog(this, text("control.save.prompt"),
+                    text("common.confirm"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (response != JOptionPane.CANCEL_OPTION) {
                 if (response == JOptionPane.YES_OPTION) { // 确认保存
                     controller.saveGame();

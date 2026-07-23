@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static util.Messages.text;
+
 /** Builds and displays the local leaderboard without bloating the control panel. */
 public final class LeaderboardDialog {
     private LeaderboardDialog() {
@@ -31,16 +33,17 @@ public final class LeaderboardDialog {
         try {
             scores = new LeaderboardRepository().load();
         } catch (IOException exception) {
-            JOptionPane.showMessageDialog(owner, "读取榜单时发生错误: " + exception.getMessage());
+            JOptionPane.showMessageDialog(owner, text("leaderboard.read.error", exception.getMessage()));
             return;
         }
         if (scores.isEmpty()) {
-            JOptionPane.showMessageDialog(owner, "排行榜为空。");
+            JOptionPane.showMessageDialog(owner, text("leaderboard.empty"));
             return;
         }
 
         DefaultTableModel model = new DefaultTableModel(
-                new Object[]{"排名", "用户名", "步数", "耗时"}, 0) {
+                new Object[]{text("leaderboard.rank"), text("leaderboard.username"),
+                        text("leaderboard.moves"), text("leaderboard.time")}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -52,7 +55,7 @@ public final class LeaderboardDialog {
         table.setFont(new Font("宋体", Font.PLAIN, 14));
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setPreferredSize(new Dimension(500, 400));
-        JButton toggleButton = new JButton("切换为时间榜");
+        JButton toggleButton = new JButton(text("leaderboard.show.time"));
         AtomicBoolean showSteps = new AtomicBoolean(true);
 
         Runnable updateTable = () -> {
@@ -63,19 +66,23 @@ public final class LeaderboardDialog {
             for (int index = 0; index < Math.min(scores.size(), 100); index++) {
                 ScoreEntry entry = scores.get(index);
                 int elapsedSeconds = 180 - entry.remainingTime();
-                model.addRow(new Object[]{index + 1, entry.user(), entry.steps() + " 步",
-                        String.format("%d分%02d秒", elapsedSeconds / 60, elapsedSeconds % 60)});
+                model.addRow(new Object[]{index + 1, entry.user(),
+                        text("leaderboard.moves.value", entry.steps()),
+                        text("leaderboard.time.value", elapsedSeconds / 60,
+                                String.format("%02d", elapsedSeconds % 60))});
             }
         };
         toggleButton.addActionListener(event -> {
             showSteps.set(!showSteps.get());
-            toggleButton.setText(showSteps.get() ? "切换为时间榜" : "切换为步数榜");
+            toggleButton.setText(showSteps.get()
+                    ? text("leaderboard.show.time")
+                    : text("leaderboard.show.moves"));
             updateTable.run();
         });
         updateTable.run();
 
         Frame frame = (Frame) SwingUtilities.getWindowAncestor(owner);
-        JDialog dialog = new JDialog(frame, "排行榜", true);
+        JDialog dialog = new JDialog(frame, text("leaderboard.title"), true);
         dialog.setLayout(new BorderLayout(10, 10));
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         topPanel.add(toggleButton);

@@ -17,6 +17,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+import static util.Messages.text;
+
 /** Owns the background-solve and EDT-playback lifecycle for the AI action. */
 public final class AiSolveCoordinator implements AutoCloseable {
     private final JComponent owner;
@@ -50,12 +52,12 @@ public final class AiSolveCoordinator implements AutoCloseable {
             return;
         }
         if (controller.isAnimating()) {
-            JOptionPane.showMessageDialog(owner, "请等待当前移动动画结束");
+            JOptionPane.showMessageDialog(owner, text("common.animation.wait"));
             return;
         }
 
         enabled = true;
-        actionButton.setText("停止推演");
+        actionButton.setText(text("ai.stop.search"));
         inputState.accept(false);
         int[][] boardSnapshot = BoardRules.copy(controller.model.getMatrix());
         long generation = ++taskGeneration;
@@ -68,8 +70,7 @@ public final class AiSolveCoordinator implements AutoCloseable {
                         (expanded, discovered) -> SwingUtilities.invokeLater(() -> {
                             if (!disposed && enabled && generation == taskGeneration) {
                                 actionButton.setText(formatSearchCount(discovered));
-                                actionButton.setToolTipText(
-                                        "已展开 " + expanded + "，已发现 " + discovered);
+                                actionButton.setToolTipText(text("ai.search.tooltip", expanded, discovered));
                             }
                         }));
             }
@@ -85,10 +86,11 @@ public final class AiSolveCoordinator implements AutoCloseable {
                     stop();
                 } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
-                    restoreAfterError("求解已中断");
+                    restoreAfterError(text("ai.interrupted"));
                 } catch (ExecutionException exception) {
                     Throwable cause = exception.getCause();
-                    restoreAfterError("求解失败：" + (cause == null ? exception.getMessage() : cause.getMessage()));
+                    restoreAfterError(text("ai.failed",
+                            cause == null ? exception.getMessage() : cause.getMessage()));
                 } finally {
                     worker = null;
                 }
@@ -98,16 +100,15 @@ public final class AiSolveCoordinator implements AutoCloseable {
     }
 
     private void handleResult(HuaRongDaoSolver.Result result) {
-        String metrics = String.format("（展开 %,d，发现 %,d）",
-                result.expandedStates(), result.discoveredStates());
+        String metrics = text("ai.metrics", result.expandedStates(), result.discoveredStates());
         actionButton.setToolTipText(metrics);
         switch (result.status()) {
             case SOLVED -> startPlayback(result.moves());
-            case ALREADY_SOLVED -> restoreAfterError("当前棋局已经完成" + metrics);
-            case NO_SOLUTION -> restoreAfterError("当前棋局没有可行解" + metrics);
+            case ALREADY_SOLVED -> restoreAfterError(text("ai.already.solved", metrics));
+            case NO_SOLUTION -> restoreAfterError(text("ai.no.solution", metrics));
             case CANCELLED -> stop();
-            case STATE_LIMIT_REACHED -> restoreAfterError(
-                    "搜索达到状态上限 " + HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES + metrics);
+            case STATE_LIMIT_REACHED -> restoreAfterError(text("ai.state.limit",
+                    HuaRongDaoSolver.DEFAULT_MAX_DISCOVERED_STATES, metrics));
         }
     }
 
@@ -117,12 +118,12 @@ public final class AiSolveCoordinator implements AutoCloseable {
         }
         List<AIMovement> remaining = new ArrayList<>(moves);
         if (remaining.isEmpty()) {
-            restoreAfterError("当前棋局已完成或没有可行解");
+            restoreAfterError(text("ai.empty.path"));
             return;
         }
 
         actionButton.setEnabled(true);
-        actionButton.setText("停止献策");
+        actionButton.setText(text("ai.stop.playback"));
         playbackTimer = new Timer(500, event -> {
             if (remaining.isEmpty()) {
                 finishNormally();
@@ -140,7 +141,7 @@ public final class AiSolveCoordinator implements AutoCloseable {
             playbackTimer = null;
         }
         enabled = false;
-        actionButton.setText("军师献策");
+        actionButton.setText(text("control.ai"));
         actionButton.setToolTipText(null);
         inputState.accept(true);
     }
@@ -164,12 +165,13 @@ public final class AiSolveCoordinator implements AutoCloseable {
 
     private static String formatSearchCount(int discoveredStates) {
         if (discoveredStates >= 100_000) {
-            return "推演 " + discoveredStates / 1_000 + "k";
+            return text("ai.search.progress", discoveredStates / 1_000 + "k");
         }
         if (discoveredStates >= 1_000) {
-            return String.format("推演 %.1fk", discoveredStates / 1_000.0);
+            return text("ai.search.progress", String.format(java.util.Locale.ROOT,
+                    "%.1fk", discoveredStates / 1_000.0));
         }
-        return "推演 " + discoveredStates;
+        return text("ai.search.progress", discoveredStates);
     }
 
     @Override

@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 
+import static util.Messages.text;
+
 /** Serializes background-music operations and owns the active audio clip. */
 public final class BackgroundMusicPlayer implements AutoCloseable {
     private final List<URL> tracks;
@@ -109,7 +111,7 @@ public final class BackgroundMusicPlayer implements AutoCloseable {
             }
             currentClip = null;
             notifyPlayback(false);
-            notifyError("播放背景音乐失败: " + exception.getMessage());
+            notifyError(text("music.error", exception.getMessage()));
         }
     }
 

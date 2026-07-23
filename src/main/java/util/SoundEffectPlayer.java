@@ -11,6 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 
+import static util.Messages.text;
+
 /** Plays short effects away from the Swing event-dispatch thread. */
 public final class SoundEffectPlayer implements AutoCloseable {
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -58,7 +60,7 @@ public final class SoundEffectPlayer implements AutoCloseable {
                 clip.close();
             }
             if (!closed && errorListener != null) {
-                errorListener.accept("播放音效失败：" + exception.getMessage());
+                errorListener.accept(text("sound.error", exception.getMessage()));
             }
         }
     }

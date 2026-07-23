@@ -1,22 +1,24 @@
 package model;
 
+import static util.Messages.text;
+
 /** Supported game presets and their initial boards. */
 public enum Difficulty {
-    BEGINNER("初出茅庐", false, new int[][]{
+    BEGINNER("difficulty.beginner", false, new int[][]{
             {3, 4, 4, 3},
             {3, 4, 4, 3},
             {3, 2, 2, 3},
             {3, 0, 0, 3},
             {1, 0, 0, 1}
     }),
-    INTERMEDIATE("刮目相待", false, new int[][]{
+    INTERMEDIATE("difficulty.intermediate", false, new int[][]{
             {3, 4, 4, 3},
             {3, 4, 4, 3},
             {3, 2, 2, 3},
             {3, 1, 0, 3},
             {1, 0, 0, 1}
     }),
-    EXPERT("运筹帷幄", true, new int[][]{
+    EXPERT("difficulty.expert", true, new int[][]{
             {3, 4, 4, 3},
             {3, 4, 4, 3},
             {3, 2, 2, 3},
@@ -24,19 +26,19 @@ public enum Difficulty {
             {1, 0, 0, 1}
     });
 
-    private final String displayName;
+    private final String messageKey;
     private final boolean ranked;
     private final int[][] initialBoard;
 
-    Difficulty(String displayName, boolean ranked, int[][] initialBoard) {
+    Difficulty(String messageKey, boolean ranked, int[][] initialBoard) {
         BoardRules.validateGameBoard(initialBoard);
-        this.displayName = displayName;
+        this.messageKey = messageKey;
         this.ranked = ranked;
         this.initialBoard = BoardRules.copy(initialBoard);
     }
 
     public String displayName() {
-        return displayName;
+        return text(messageKey);
     }
 
     public boolean isRanked() {
