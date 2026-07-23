@@ -1,0 +1,32 @@
+<div align="center">
+  <a href="CONTRIBUTING.md">English</a> ·
+  <a href="CONTRIBUTING_ZH.md">简体中文</a>
+</div>
+
+# 参与贡献
+
+感谢你改进 KlotskiPuzzle。这个仓库面向正在学习 Java 桌面开发与搜索算法的学生和初级开发者，因此贡献应优先保持代码可运行、规则可验证、技术边界可解释。
+
+适合首次贡献的方向包括：补充棋盘测试、优化 A* 启发式函数、增加可复现关卡，以及改善不同分辨率下的 Swing 布局。课程学习者可以参考和改造项目，但不应将仓库内容原样作为课程作业提交。
+
+## 开发环境
+
+- JDK 22 或更高版本
+- Maven 3.9 或更高版本
+- 可选：Python 3.11+ 与 Pillow（仅在重新生成原创素材时需要）
+
+## 本地检查
+
+```bash
+mvn verify
+```
+
+提交前请确保：
+
+- 玩家操作与 AI 都通过 `model.BoardRules` 修改棋盘；
+- 新规则有 JUnit 测试；
+- 不提交 `target/`、`out/` 或本地玩家数据；
+- 优先通过 `tools/generate_original_assets.py` 生成原创素材；引入外部素材时，必须在 `THIRD_PARTY_NOTICES.md` 记录作者、来源 URL、许可证和署名要求；
+- README 中的运行命令和技术声明与当前代码一致。
+
+Pull Request 请说明问题、实现思路、验证命令及结果。算法性能改动请提供相同关卡、相同 JDK 与相同硬件上的前后数据。

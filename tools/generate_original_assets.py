@@ -259,59 +259,63 @@ def make_document_images() -> None:
                   (221, 197, 157, 235))
     social.convert("RGB").save(DOCS_ROOT / "social-preview.png", optimize=True)
 
-    demo_frames: list[Image.Image] = []
-    for frame_index in range(24):
-        frame = vertical_gradient((720, 450), (27, 31, 40), (95, 57, 40)).convert("RGBA")
-        overlay = ImageDraw.Draw(frame, "RGBA")
-        centered_text(overlay, (360, 40), "A* 搜索与 EDT 动画回放", font(28, bold=True),
-                      (255, 239, 207, 255))
-        cell = 62
-        origin_x, origin_y = 230, 78
-        overlay.rounded_rectangle((origin_x - 10, origin_y - 10,
-                                   origin_x + cell * 4 + 10, origin_y + cell * 5 + 10),
-                                  radius=16, fill=(27, 23, 21, 220),
-                                  outline=(233, 194, 122, 190), width=3)
-        static_pieces = [
-            (0, 0, 1, 2, "纵1", (48, 104, 94)),
-            (1, 0, 2, 2, "主将", (137, 53, 43)),
-            (3, 0, 1, 2, "纵2", (58, 80, 126)),
-            (0, 2, 1, 2, "纵3", (101, 72, 120)),
-            (3, 2, 1, 2, "纵4", (124, 78, 45)),
-            (0, 4, 1, 1, "兵1", (137, 111, 57)),
-            (3, 4, 1, 1, "兵2", (116, 104, 70)),
-        ]
-        if frame_index < 6:
-            move_progress = 0.0
-            status = "SwingWorker：搜索中"
-        elif frame_index < 13:
-            move_progress = (frame_index - 6) / 6
-            status = "Swing Timer：回放合法移动"
-        elif frame_index < 18:
-            move_progress = 1.0
-            status = "BoardRules：状态已更新"
-        else:
-            move_progress = 1 - (frame_index - 18) / 5
-            status = "可取消、可重放"
-        pieces = static_pieces + [(1, 2 + move_progress, 2, 1, "横将", (150, 91, 38))]
-        for col, row, piece_width, piece_height, label, color in pieces:
-            x0 = origin_x + col * cell + 3
-            y0 = origin_y + row * cell + 3
-            x1 = x0 + piece_width * cell - 6
-            y1 = y0 + piece_height * cell - 6
-            overlay.rounded_rectangle((x0, y0, x1, y1), radius=9, fill=color + (255,),
-                                      outline=(255, 231, 178, 180), width=2)
-            centered_text(overlay, ((x0 + x1) // 2, (y0 + y1) // 2), label,
-                          font(17, bold=True), (255, 244, 213, 255))
-        overlay.rounded_rectangle((28, 168, 198, 276), radius=18, fill=(24, 22, 22, 125),
-                                  outline=(234, 194, 122, 75), width=2)
-        centered_text(overlay, (113, 202), "1  后台求解", font(19, bold=True),
-                      (255, 239, 207, 255))
-        centered_text(overlay, (113, 239), "2  EDT 回放", font(19, bold=True),
-                      (255, 239, 207, 255))
-        centered_text(overlay, (360, 422), status, font(18), (232, 208, 168, 255))
-        demo_frames.append(frame.convert("RGB").quantize(colors=128))
-    demo_frames[0].save(DOCS_ROOT / "demo.gif", save_all=True, append_images=demo_frames[1:],
-                        duration=110, loop=0, optimize=True, disposal=2)
+    for demo_name, english in (("demo.gif", False), ("demo-en.gif", True)):
+        demo_frames: list[Image.Image] = []
+        title = "A* Search & EDT Playback" if english else "A* 搜索与 EDT 动画回放"
+        labels = ("V1", "CAO CAO", "V2", "V3", "V4", "S1", "S2", "H") if english else (
+            "纵1", "主将", "纵2", "纵3", "纵4", "兵1", "兵2", "横将")
+        for frame_index in range(24):
+            frame = vertical_gradient((720, 450), (27, 31, 40), (95, 57, 40)).convert("RGBA")
+            overlay = ImageDraw.Draw(frame, "RGBA")
+            centered_text(overlay, (360, 40), title, font(28, bold=True),
+                          (255, 239, 207, 255))
+            cell = 62
+            origin_x, origin_y = 230, 78
+            overlay.rounded_rectangle((origin_x - 10, origin_y - 10,
+                                       origin_x + cell * 4 + 10, origin_y + cell * 5 + 10),
+                                      radius=16, fill=(27, 23, 21, 220),
+                                      outline=(233, 194, 122, 190), width=3)
+            static_pieces = [
+                (0, 0, 1, 2, labels[0], (48, 104, 94)),
+                (1, 0, 2, 2, labels[1], (137, 53, 43)),
+                (3, 0, 1, 2, labels[2], (58, 80, 126)),
+                (0, 2, 1, 2, labels[3], (101, 72, 120)),
+                (3, 2, 1, 2, labels[4], (124, 78, 45)),
+                (0, 4, 1, 1, labels[5], (137, 111, 57)),
+                (3, 4, 1, 1, labels[6], (116, 104, 70)),
+            ]
+            if frame_index < 6:
+                move_progress = 0.0
+                status = "SwingWorker: searching" if english else "SwingWorker：搜索中"
+            elif frame_index < 13:
+                move_progress = (frame_index - 6) / 6
+                status = "Swing Timer: replaying a legal move" if english else "Swing Timer：回放合法移动"
+            elif frame_index < 18:
+                move_progress = 1.0
+                status = "BoardRules: state updated" if english else "BoardRules：状态已更新"
+            else:
+                move_progress = 1 - (frame_index - 18) / 5
+                status = "Cancellable and replayable" if english else "可取消、可重放"
+            pieces = static_pieces + [(1, 2 + move_progress, 2, 1, labels[7], (150, 91, 38))]
+            for col, row, piece_width, piece_height, label, color in pieces:
+                x0 = origin_x + col * cell + 3
+                y0 = origin_y + row * cell + 3
+                x1 = x0 + piece_width * cell - 6
+                y1 = y0 + piece_height * cell - 6
+                overlay.rounded_rectangle((x0, y0, x1, y1), radius=9, fill=color + (255,),
+                                          outline=(255, 231, 178, 180), width=2)
+                centered_text(overlay, ((x0 + x1) // 2, (y0 + y1) // 2), label,
+                              font(15 if english else 17, bold=True), (255, 244, 213, 255))
+            overlay.rounded_rectangle((28, 168, 198, 276), radius=18, fill=(24, 22, 22, 125),
+                                      outline=(234, 194, 122, 75), width=2)
+            centered_text(overlay, (113, 202), "1  Background A*" if english else "1  后台求解",
+                          font(17 if english else 19, bold=True), (255, 239, 207, 255))
+            centered_text(overlay, (113, 239), "2  EDT playback" if english else "2  EDT 回放",
+                          font(17 if english else 19, bold=True), (255, 239, 207, 255))
+            centered_text(overlay, (360, 422), status, font(18), (232, 208, 168, 255))
+            demo_frames.append(frame.convert("RGB").quantize(colors=128))
+        demo_frames[0].save(DOCS_ROOT / demo_name, save_all=True, append_images=demo_frames[1:],
+                            duration=110, loop=0, optimize=True, disposal=2)
 
 
 def clamp_sample(value: float) -> int:

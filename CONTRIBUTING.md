@@ -1,27 +1,32 @@
-# 参与贡献
+<div align="center">
+  <a href="CONTRIBUTING.md">English</a> ·
+  <a href="CONTRIBUTING_ZH.md">简体中文</a>
+</div>
 
-感谢你改进 KlotskiPuzzle。这个仓库面向正在学习 Java 桌面开发与搜索算法的学生和初级开发者，因此贡献应优先保持代码可运行、规则可验证、技术边界可解释。
+# Contributing
 
-适合首次贡献的方向包括：补充棋盘测试、优化 A* 启发式函数、增加可复现关卡，以及改善不同分辨率下的 Swing 布局。课程学习者可以参考和改造项目，但不应将仓库内容原样作为课程作业提交。
+Thanks for improving KlotskiPuzzle. This repository is designed for students and junior developers learning Java desktop development and search algorithms, so contributions should keep the code runnable, the rules verifiable, and the technical boundaries explainable.
 
-## 开发环境
+Good first contributions include adding board tests, improving the A* heuristic, contributing reproducible layouts, and making the Swing UI work better across screen sizes. You may study and adapt this project for coursework, but should not submit the repository unchanged as your own assignment.
 
-- JDK 22 或更高版本
-- Maven 3.9 或更高版本
-- 可选：Python 3.11+ 与 Pillow（仅在重新生成原创素材时需要）
+## Development requirements
 
-## 本地检查
+- JDK 22 or later
+- Maven 3.9 or later
+- Optional: Python 3.11+ and Pillow, only when regenerating original assets
+
+## Local verification
 
 ```bash
 mvn verify
 ```
 
-提交前请确保：
+Before opening a pull request, make sure that:
 
-- 玩家操作与 AI 都通过 `model.BoardRules` 修改棋盘；
-- 新规则有 JUnit 测试；
-- 不提交 `target/`、`out/` 或本地玩家数据；
-- 优先通过 `tools/generate_original_assets.py` 生成原创素材；引入外部素材时，必须在 `THIRD_PARTY_NOTICES.md` 记录作者、来源 URL、许可证和署名要求；
-- README 中的运行命令和技术声明与当前代码一致。
+- Player actions and AI playback both update the board through `model.BoardRules`;
+- New rules include JUnit tests;
+- `target/`, `out/`, and local player data are not committed;
+- Original media is preferably generated with `tools/generate_original_assets.py`; any external media must be documented in `THIRD_PARTY_NOTICES.md` with its author, source URL, license, and attribution requirements;
+- README commands and technical claims still match the implementation.
 
-Pull Request 请说明问题、实现思路、验证命令及结果。算法性能改动请提供相同关卡、相同 JDK 与相同硬件上的前后数据。
+Pull requests should describe the problem, implementation, verification commands, and results. Solver performance changes should include before-and-after data from the same layouts, JDK, and hardware.
