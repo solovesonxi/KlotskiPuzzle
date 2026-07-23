@@ -10,6 +10,8 @@ All notable changes to KlotskiPuzzle are documented here.
 - Add matching English and Chinese contribution guides.
 - Add complete English and Simplified Chinese runtime messages with `--lang` selection and bundle parity tests.
 - Keep countdown state in the game model instead of parsing localized label text.
+- Prepare tagged releases with a portable Windows application and SHA-256 checksums.
+- Add a public scope-focused roadmap and document language-specific launch commands.
 
 ## 1.0.0 - 2026-07-23
 

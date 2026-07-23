@@ -18,6 +18,7 @@
 
   <p>
     <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+    <a href="ROADMAP.md">Roadmap</a> ·
     <a href="CHANGELOG.md">Changelog</a> ·
     <a href="CONTRIBUTING.md">Contributing</a> ·
     <a href="https://github.com/44-99/KlotskiPuzzle/discussions">Discussions</a>
@@ -43,9 +44,9 @@ Many Java course examples provide either a Swing interface or an isolated algori
 
 KlotskiPuzzle addresses these problems in one repository with explicit technical boundaries. It is intended for study, experimentation, and refactoring rather than submission as course work.
 
-## Quick Start
+## Quick Start: Run the Java Swing Klotski Project
 
-### Requirements
+### Build the latest source
 
 - JDK 22 or later;
 - Maven 3.9 or later;
@@ -58,13 +59,24 @@ mvn clean verify
 mvn exec:java
 ```
 
-After building, the JAR can also be launched directly:
+The interface follows the operating-system language: Simplified Chinese systems use Chinese, while other systems use English. Override it explicitly when needed:
 
 ```bash
-java -jar target/klotski-puzzle-1.0.0.jar
+mvn exec:java -Dexec.args="--lang=en"
+mvn exec:java -Dexec.args="--lang=zh-CN"
+```
+
+After building, the JAR can also be launched directly with the same language option:
+
+```bash
+java -jar target/klotski-puzzle-1.0.0.jar --lang=en
 ```
 
 Images and audio are packaged as classpath resources, so the JAR does not depend on the process working directory.
+
+### Download a release
+
+The [latest GitHub release](https://github.com/44-99/KlotskiPuzzle/releases/latest) provides the executable JAR. The updated release workflow also produces a portable Windows package with its own Java runtime for the next tagged release, so players can run it without installing Java or Maven.
 
 ## What You Can Learn
 
@@ -86,6 +98,7 @@ Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> Boar
 ## Playable Features
 
 - A 5×4 Huarong Dao board with three built-in layouts;
+- English and Simplified Chinese interfaces selected from the system locale or `--lang`;
 - Keyboard, WASD, mouse, and on-screen directional controls;
 - Background A* search with progress, cancellation, and animated playback;
 - Undo, restart, and a 180-second timed challenge;
@@ -148,7 +161,7 @@ mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before contributing. Useful areas include GUI integration tests, responsive layouts, a validated level editor, and deeper solver benchmarks. Use Issues for scoped work and Discussions for open-ended questions or ideas.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and the public [roadmap](ROADMAP.md) before contributing. Useful areas include GUI integration tests, responsive layouts, a validated level editor, and deeper solver benchmarks. Use Issues for scoped work and Discussions for open-ended questions or ideas.
 
 ## License
 

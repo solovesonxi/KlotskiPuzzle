@@ -18,6 +18,7 @@
 
   <p>
     <a href="docs/ARCHITECTURE.md">架构说明</a> ·
+    <a href="ROADMAP.md">开发路线</a> ·
     <a href="CHANGELOG.md">更新记录</a> ·
     <a href="CONTRIBUTING_ZH.md">参与贡献</a> ·
     <a href="https://github.com/44-99/KlotskiPuzzle/discussions">讨论区</a>
@@ -43,9 +44,9 @@ KlotskiPuzzle 是一个从 Java GUI 课程项目演进而来的 Java 22+ Swing �
 
 KlotskiPuzzle 把这些问题放在同一个项目中解决，并保留清晰的技术边界，适合阅读、实验和重构，而不是直接作为课程作业提交。
 
-## 快速开始
+## 快速开始：运行 Java Swing 华容道完整项目
 
-### 环境要求
+### 构建最新源码
 
 - JDK 22 或更高版本；
 - Maven 3.9 或更高版本；
@@ -58,13 +59,24 @@ mvn clean verify
 mvn exec:java
 ```
 
-构建完成后也可以直接运行 JAR：
+程序会根据操作系统语言自动选择界面：简体中文系统使用中文，其他系统默认英文。也可以显式指定：
 
 ```bash
-java -jar target/klotski-puzzle-1.0.0.jar
+mvn exec:java -Dexec.args="--lang=zh-CN"
+mvn exec:java -Dexec.args="--lang=en"
+```
+
+构建完成后也可以使用相同参数直接运行 JAR：
+
+```bash
+java -jar target/klotski-puzzle-1.0.0.jar --lang=zh-CN
 ```
 
 图片和音频作为 classpath 资源打入 JAR，运行时不依赖当前工作目录。
+
+### 下载发布版
+
+[最新 GitHub Release](https://github.com/44-99/KlotskiPuzzle/releases/latest) 提供可执行 JAR。更新后的发布流程还会从下一个版本标签开始提供自带 Java 运行时的 Windows 便携包，普通用户无需安装 Java 或 Maven即可体验。
 
 ## 你能从中学到什么
 
@@ -86,6 +98,7 @@ AI 执行链路可以概括为：
 ## 可玩功能
 
 - 5×4 华容道棋盘和三种内置布局；
+- 根据系统语言或 `--lang` 参数选择英文、简体中文界面；
 - 键盘、WASD、鼠标及界面方向按钮操作；
 - A* 后台求解、搜索进度、取消与动画回放；
 - 撤销、重新开始和 180 秒限时挑战；
@@ -148,7 +161,7 @@ mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
 
 ## 参与贡献
 
-请先阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING_ZH.md)。适合的改进方向包括 GUI 集成测试、响应式布局、可验证的关卡编辑器和更细致的求解器基准。问题请提交到 Issues，开放式想法与使用交流请放到 Discussions。
+请先阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING_ZH.md) 和公开的 [开发路线](ROADMAP.md)。适合的改进方向包括 GUI 集成测试、响应式布局、可验证的关卡编辑器和更细致的求解器基准。问题请提交到 Issues，开放式想法与使用交流请放到 Discussions。
 
 ## 许可证
 

@@ -4,12 +4,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build-jar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -20,12 +21,65 @@ jobs:
           cache: maven
       - name: Verify and package
         run: mvn --batch-mode --no-transfer-progress clean verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-jar
+          path: target/klotski-puzzle-1.0.0.jar
+
+  build-windows-portable:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '22'
+          cache: maven
+      - name: Verify and package
+        run: mvn --batch-mode --no-transfer-progress clean verify
+      - name: Build portable Windows application
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path package-input, dist -Force | Out-Null
+          Copy-Item target/klotski-puzzle-1.0.0.jar package-input/
+          jpackage `
+            --type app-image `
+            --name KlotskiPuzzle `
+            --input package-input `
+            --main-jar klotski-puzzle-1.0.0.jar `
+            --main-class Main `
+            --dest dist `
+            --java-options "-Dfile.encoding=UTF-8"
+          Compress-Archive `
+            -Path dist/KlotskiPuzzle `
+            -DestinationPath dist/KlotskiPuzzle-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows-portable
+          path: dist/KlotskiPuzzle-Windows-x64.zip
+
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-jar, build-windows-portable]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Generate checksums
+        working-directory: release-assets
+        run: sha256sum klotski-puzzle-1.0.0.jar KlotskiPuzzle-Windows-x64.zip > SHA256SUMS.txt
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: >-
           gh release create "${GITHUB_REF_NAME}"
-          target/klotski-puzzle-1.0.0.jar
+          release-assets/klotski-puzzle-1.0.0.jar
+          release-assets/KlotskiPuzzle-Windows-x64.zip
+          release-assets/SHA256SUMS.txt
           --verify-tag
           --generate-notes
           --title "KlotskiPuzzle ${GITHUB_REF_NAME}"
