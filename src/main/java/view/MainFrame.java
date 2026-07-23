@@ -5,6 +5,7 @@ import model.MapModel;
 import util.AppResources;
 import util.BackgroundMusicPlayer;
 import view.game.ControlPanel;
+import view.lab.LabPanel;
 import view.login.CustomDifficultyDialog;
 import view.login.LoginPanel;
 
@@ -29,6 +30,7 @@ public class MainFrame extends JFrame implements WindowListener {
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel container = new JPanel(cardLayout);
     private final LoginPanel loginPanel; // 登录面板
+    private final LabPanel labPanel;
     private ControlPanel controlPanel; // 控制面板
     private final JButton lastBtn, nextBtn, soundBtn; // 共享的播放控件
     private final JPanel musicControls = new ToolbarPanel();
@@ -64,6 +66,9 @@ public class MainFrame extends JFrame implements WindowListener {
         nextBtn.addActionListener(event -> playTrack(true)); // 播放下一首音乐
         ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
         configureMusicControls();
+
+        labPanel = new LabPanel(this::showLogin, musicControls);
+        container.add(labPanel, "lab");
 
         musicPlayer = new BackgroundMusicPlayer(
                 loadAudioFiles(),
@@ -148,6 +153,16 @@ public class MainFrame extends JFrame implements WindowListener {
         container.repaint();
     }
 
+    /** Opens the experiment workspace without creating a player or timed game session. */
+    public void showLab() {
+        if (controlPanel != null) {
+            controlPanel.disposePanel();
+        }
+        labPanel.attachToolbar(musicControls);
+        cardLayout.show(container, "lab");
+        labPanel.onShown();
+    }
+
     // 加载音频文件
     private List<URL> loadAudioFiles() {
         List<URL> audioResources = new ArrayList<>();
@@ -198,6 +213,7 @@ public class MainFrame extends JFrame implements WindowListener {
     private void languageDidChange() {
         applyLanguage();
         loginPanel.applyLanguage();
+        labPanel.applyLanguage();
         if (controlPanel != null && controlPanel.isVisible()) {
             controlPanel.applyLanguage();
         }

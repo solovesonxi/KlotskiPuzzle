@@ -9,10 +9,11 @@ KlotskiPuzzle is evolving from a playable Java Swing Huarong Dao reference into 
 - Switch English and Simplified Chinese at runtime.
 - Build and verify with Java 22+, Maven, JUnit, and GitHub Actions.
 - Package original programmatically generated runtime media and a portable Windows application.
+- Preview independent Lab Mode experiments with four deterministic strategies, two movement rules, a board preview, live counters, and cancellation.
 
 ## V2 foundation
 
-- Introduce versioned Puzzle Definitions, explicit Cell Step and Piece Move rules, and stable Puzzle Presets.
+- Add versioned Puzzle Definition import/export on top of the implemented validation, content identity, movement rules, and stable presets.
 - Separate Play Mode sessions from Lab Mode Search Experiments while sharing rule and rendering modules.
 - Define deterministic search events, Experiment Records, and qualified environment observations.
 - Replace password accounts with optional local Player Profiles and user-controlled legacy migration.

@@ -24,6 +24,7 @@ public class LoginPanel extends JPanel {
     private final JButton loginBtn;
     private final JButton registerBtn;
     private final JButton guestLoginBtn;
+    private final JButton labBtn;
     private final JPanel loginCard;
     public JPanel contentPanel; // 内容面板
     private UserRepository users;
@@ -62,10 +63,12 @@ public class LoginPanel extends JPanel {
         loginBtn = createCardButton(text("login.sign.in"));
         registerBtn = createCardButton(text("login.register"));
         guestLoginBtn = createCardButton(text("login.guest"));
+        labBtn = createCardButton(text("login.lab"));
         buildLoginCard();
         loginBtn.addActionListener(event -> handleLogin()); // 登录按钮事件
         registerBtn.addActionListener(event -> handleRegister()); // 注册按钮事件
         guestLoginBtn.addActionListener(event -> mainFrame.showControl(null)); // 游客登录事件
+        labBtn.addActionListener(event -> mainFrame.showLab());
     }
 
     @Override
@@ -142,6 +145,7 @@ public class LoginPanel extends JPanel {
         loginBtn.setText(text("login.sign.in"));
         registerBtn.setText(text("login.register"));
         guestLoginBtn.setText(text("login.guest"));
+        labBtn.setText(text("login.lab"));
         loginCard.revalidate();
         loginCard.repaint();
     }
@@ -191,8 +195,12 @@ public class LoginPanel extends JPanel {
         loginCard.add(accountActions, constraints);
 
         constraints.gridy++;
-        constraints.insets = new Insets(8, 36, 20, 36);
+        constraints.insets = new Insets(8, 36, 8, 36);
         loginCard.add(guestLoginBtn, constraints);
+
+        constraints.gridy++;
+        constraints.insets = new Insets(8, 36, 20, 36);
+        loginCard.add(labBtn, constraints);
     }
 
     private JLabel createFormLabel(String labelText) {

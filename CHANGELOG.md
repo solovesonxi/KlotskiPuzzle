@@ -4,6 +4,9 @@ All notable changes to KlotskiPuzzle are documented here.
 
 ## Unreleased
 
+- Begin the v2 algorithm-lab foundation with validated content-addressed Puzzle Definitions, explicit Cell Step and Piece Move rules, and stable Puzzle Presets.
+- Add one deterministic experiment runner for BFS, Greedy Best-First, A*, and Weighted A* with cancellation, limits, paths, and shared metrics.
+- Add an independent Lab Mode preview with background execution, a board preview, live counters, bilingual controls, and 1280x720 render coverage.
 - Unify the login, difficulty, game, piece, leaderboard, button, text, and audio presentation under a modern Eastern strategy-board art direction.
 - Replace the four on-screen direction buttons with press-and-slide gestures while retaining arrow-key and WASD input.
 - Render localized piece names in Java over original lacquered-wood assets and add selection feedback.

@@ -105,9 +105,12 @@ Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> Boar
 - English and Simplified Chinese interfaces selected from the in-game language button, system locale, or `--lang`;
 - Press-and-slide mouse gestures plus arrow-key and WASD controls;
 - Background A* search with progress, cancellation, and animated playback;
+- An early Lab Mode slice for deterministic BFS, Greedy Best-First, A*, and Weighted A* experiments under Cell Step or Piece Move rules;
 - Undo, restart, and a 180-second timed challenge;
 - Local players, saves, step rankings, and time rankings;
 - Original background music plus selection, move, invalid-move, undo, victory, and defeat effects.
+
+The Lab Mode slice currently exposes reproducible configuration, a board preview, live counters, final metrics, and cancellation. Search charts, the State Inspector, Solution Replay, Experiment Records, and HTML reports remain v2 work tracked in the [v2 plan](docs/V2_PLAN.md).
 
 ## Controls and Local Data
 

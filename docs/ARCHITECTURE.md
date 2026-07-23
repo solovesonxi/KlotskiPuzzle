@@ -6,7 +6,10 @@ KlotskiPuzzle is intentionally small enough to read as a learning project, while
 
 ```mermaid
 flowchart LR
-    Input["Keyboard / mouse / buttons"] --> GamePanel
+    Start["Start screen"] --> Play["Play Mode"]
+    Start --> Lab["Lab Mode"]
+    Input["Keyboard / mouse"] --> GamePanel
+    Play --> GamePanel
     GamePanel --> GameController
     GameController --> BoardRules
     BoardRules --> MapModel
@@ -17,6 +20,10 @@ flowchart LR
     AiSolveCoordinator -->|"Swing Timer"| GamePanel
     GameController --> SaveRepository["GameSaveRepository"]
     GameController --> SoundPlayer["SoundEffectPlayer"]
+    Lab --> LabPanel
+    LabPanel -->|"SwingWorker"| ExperimentRunner["SearchExperimentRunner"]
+    ExperimentRunner --> PuzzleDefinition
+    PuzzleDefinition --> BoardRules
 ```
 
 The important boundary is `BoardRules`: both player moves and solver expansion call the same pure Java function. A move therefore cannot be legal only in the UI or only in the solver.
@@ -28,6 +35,7 @@ The important boundary is `BoardRules`: both player moves and solver expansion c
 | `cli` | Copy-paste diagnostics and reports that reuse the application model |
 | `model` | Board representation, validation, movement rules, presets, and bounded A* search |
 | `controller` | A game session plus AI search/playback coordination |
+| `lab` | Deterministic search-experiment configuration, strategy policy, metrics, and path reconstruction |
 | `view` | Swing composition, rendering, input, and dialogs |
 | `data` | User credentials, rankings, save serialization, atomic replacement, and corrupt-file quarantine |
 | `util` | Classpath resource loading and audio lifecycle |
@@ -36,11 +44,16 @@ The important boundary is `BoardRules`: both player moves and solver expansion c
 
 - Swing components are created and updated on the event-dispatch thread (EDT).
 - `AiSolveCoordinator` runs A* in a `SwingWorker`; progress is marshalled back to the EDT.
+- `LabPanel` runs `SearchExperimentRunner` in a separate `SwingWorker`; Lab Mode never creates a player, countdown, or leaderboard session.
 - AI moves and piece animation use `javax.swing.Timer`, so component updates remain on the EDT.
 - Background music has one serialized executor. Short sound effects use Java virtual threads so opening an audio line does not block input handling.
 - Cancelling AI interrupts the worker; the solver checks the interrupt flag during search and neighbor generation.
 
 ## Solver state
+
+V2 introduces a deeper experiment seam alongside the legacy gameplay solver. `PuzzleDefinition` owns validated 5x4 content identity, movement-rule behavior, stable successor ordering, and state compatibility. `SearchExperimentRunner` owns strategy scoring, deterministic tie-breaking, cancellation, state limits, common metrics, and path reconstruction behind one `run` interface.
+
+The legacy `HuaRongDaoSolver` remains the current Play Mode adapter while Lab Mode matures; stable v2 will remove duplicated solver behavior rather than maintain two independent rule implementations.
 
 `State` is an immutable search node with separate values for:
 
