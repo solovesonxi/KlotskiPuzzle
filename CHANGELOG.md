@@ -2,6 +2,11 @@
 
 All notable changes to KlotskiPuzzle are documented here.
 
+## Unreleased
+
+- Add accessible names and tooltips to the icon-only music controls.
+- Add a command-line report for fresh solver status, path, search, and timing metrics.
+
 ## 1.0.0 - 2026-07-23
 
 - Require Java 22 or later and add reproducible Maven/JUnit verification.

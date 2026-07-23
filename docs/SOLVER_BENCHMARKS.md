@@ -21,7 +21,15 @@ Measured on 2026-07-23 with Temurin 22.0.2 on Windows. Wall-clock time is shown 
 
 The expert preset taking more moves but exploring fewer positions is not a contradiction: layout structure and heuristic guidance affect frontier size independently of solution length.
 
-Run the automated baseline with:
+Print fresh metrics for every preset with:
+
+```bash
+mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
+```
+
+The command emits tab-separated `preset`, `status`, `moves`, `expanded`, `discovered`, and `elapsed_ms` columns. Elapsed time is informational and varies by machine; compare solver changes with the same JDK, hardware, layouts, and move definition.
+
+Run the automated regression baseline with:
 
 ```bash
 mvn -Dtest=HuaRongDaoSolverTest test

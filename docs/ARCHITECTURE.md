@@ -25,6 +25,7 @@ The important boundary is `BoardRules`: both player moves and solver expansion c
 
 | Package | Responsibility |
 |---|---|
+| `cli` | Copy-paste diagnostics and reports that reuse the application model |
 | `model` | Board representation, validation, movement rules, presets, and bounded A* search |
 | `controller` | A game session plus AI search/playback coordination |
 | `view` | Swing composition, rendering, input, and dialogs |

@@ -43,21 +43,24 @@ public class MainFrame extends JFrame implements WindowListener {
         this.add(container); // 添加容器到窗口
 
         // 音乐播放按钮
-        soundBtn = ViewUtil.createMusicButton("resources/original/image/icons/play.png", new Point(width - 135, 10));
+        soundBtn = ViewUtil.createMusicButton(
+                "resources/original/image/icons/play.png", new Point(width - 135, 10),
+                "播放背景音乐", "播放背景音乐");
         soundBtn.addActionListener(event -> toggleBGM()); // 切换背景音乐
-        lastBtn = ViewUtil.createMusicButton("resources/original/image/icons/previous.png", new Point(width - 197, 10));
+        lastBtn = ViewUtil.createMusicButton(
+                "resources/original/image/icons/previous.png", new Point(width - 197, 10),
+                "上一首背景音乐", "播放上一首背景音乐");
         lastBtn.addActionListener(event -> playTrack(false)); // 播放上一首音乐
         ViewUtil.addButtonMouseListener(lastBtn, "resources/original/image/icons/previous.png");
-        nextBtn = ViewUtil.createMusicButton("resources/original/image/icons/next.png", new Point(width - 75, 10));
+        nextBtn = ViewUtil.createMusicButton(
+                "resources/original/image/icons/next.png", new Point(width - 75, 10),
+                "下一首背景音乐", "播放下一首背景音乐");
         nextBtn.addActionListener(event -> playTrack(true)); // 播放下一首音乐
         ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
 
         musicPlayer = new BackgroundMusicPlayer(
                 loadAudioFiles(),
-                playing -> SwingUtilities.invokeLater(() -> soundBtn.setIcon(AppResources.icon(
-                        playing
-                                ? "resources/original/image/icons/pause.png"
-                                : "resources/original/image/icons/play.png"))),
+                playing -> SwingUtilities.invokeLater(() -> updateSoundButton(playing)),
                 message -> System.err.println(message));
         musicPlayer.start();
         showLogin(); // 显示登录界面
@@ -158,6 +161,14 @@ public class MainFrame extends JFrame implements WindowListener {
     // 播放上一首或下一首音轨
     public void playTrack(boolean isNext) {
         musicPlayer.skip(isNext);
+    }
+
+    private void updateSoundButton(boolean playing) {
+        String actionText = playing ? "暂停背景音乐" : "播放背景音乐";
+        soundBtn.setIcon(AppResources.icon(playing
+                ? "resources/original/image/icons/pause.png"
+                : "resources/original/image/icons/play.png"));
+        ViewUtil.configureButtonAccessibility(soundBtn, actionText, actionText);
     }
 
     private void exitApplication() {

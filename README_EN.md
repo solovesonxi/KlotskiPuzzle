@@ -111,6 +111,7 @@ Player profiles, saves, and leaderboard data are stored in `${user.home}/.klotsk
 ```text
 KlotskiPuzzle/
 ├── src/main/java/
+│   ├── cli/          # Copy-paste solver metrics report
 │   ├── controller/   # Game session plus AI search/playback lifecycle
 │   ├── data/         # Players, rankings, and recoverable saves
 │   ├── model/        # Board model, layouts, movement rules, and A* solver
@@ -134,6 +135,12 @@ mvn clean verify
 Automated tests cover board integrity, legal and illegal movement for all four piece types, built-in layout solving and path replay, cancellation and state limits, search-node semantics, local password hashing, recoverable saves, leaderboard recovery, and packaged resources. A resource test also prevents the animated login GIF from silently regressing to a static image. See the CI badge at the top for the latest build result.
 
 Move counts plus expanded/discovered-state baselines for all three presets are recorded in [solver benchmarks](docs/SOLVER_BENCHMARKS.md). Performance changes should be compared under the same move definition.
+
+Print complete metrics for the current machine without editing a test:
+
+```bash
+mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
+```
 
 ## Project Boundaries
 

@@ -38,12 +38,21 @@ public class ViewUtil {
     }
 
     // 创建音乐按钮
-    public static JButton createMusicButton(String path, Point pos) {
+    public static JButton createMusicButton(String path, Point pos,
+                                            String accessibleName, String toolTipText) {
         JButton btn = new JButton(AppResources.icon(path)); // 设置按钮图标
         btn.setBounds(pos.x, pos.y, 50, 50); // 设置按钮位置和大小
         btn.setContentAreaFilled(false); // 不填充内容区域
         btn.setBorderPainted(false); // 不绘制边框
+        configureButtonAccessibility(btn, accessibleName, toolTipText);
         return btn;
+    }
+
+    static void configureButtonAccessibility(JButton button, String accessibleName,
+                                             String toolTipText) {
+        button.getAccessibleContext().setAccessibleName(accessibleName);
+        button.getAccessibleContext().setAccessibleDescription(toolTipText);
+        button.setToolTipText(toolTipText);
     }
 
     // 创建样式化按钮
