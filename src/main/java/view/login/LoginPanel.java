@@ -18,6 +18,12 @@ public class LoginPanel extends JPanel {
     private final Image backgroundImage;
     private final JTextField username; // 用户名输入框
     private final JPasswordField password; // 密码输入框
+    private final JLabel usernameLabel;
+    private final JLabel passwordLabel;
+    private final JLabel titleLabel;
+    private final JButton loginBtn;
+    private final JButton registerBtn;
+    private final JButton guestLoginBtn;
     public JPanel contentPanel; // 内容面板
     private UserRepository users;
 
@@ -41,16 +47,17 @@ public class LoginPanel extends JPanel {
         // 创建用户名和密码输入框
         username = ViewUtil.createJTextField(contentPanel, new Point(width / 2 - 40, height / 2 - 100), 160, 30);
         password = ViewUtil.createJPasswordField(contentPanel, new Point(width / 2 - 40, height / 2 - 50), 160, 30);
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 100), 90, 30, 16, text("login.username")); // 用户名标签
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 110, height / 2 - 50), 90, 30, 16, text("login.password")); // 密码标签
-        ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 180, height / 2 - 300), 380, 120, 48, text("login.title")); // 游戏标题
+        usernameLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 130, height / 2 - 100), 110, 30, 16, text("login.username")); // 用户名标签
+        passwordLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 130, height / 2 - 50), 110, 30, 16, text("login.password")); // 密码标签
+        titleLabel = ViewUtil.createJLabel(contentPanel, new Point(width / 2 - 180, height / 2 - 300), 380, 120, 48, text("login.title")); // 游戏标题
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         // 登录注册按钮
         Color btnColor = new Color(139, 69, 19); // 按钮颜色
         Font btnFont = new Font("楷体", Font.PLAIN, 16); // 按钮字体
-        JButton loginBtn = ViewUtil.createStyledButton(contentPanel, text("login.sign.in"), new Point(width / 2 - 100, height / 2 + 30), 100, 30, btnColor, btnFont);
-        JButton registerBtn = ViewUtil.createStyledButton(contentPanel, text("login.register"), new Point(width / 2 + 20, height / 2 + 30), 100, 30, btnColor, btnFont);
-        JButton guestLoginBtn = ViewUtil.createStyledButton(contentPanel, text("login.guest"), new Point(width / 2 - 100, height / 2 + 80), 220, 32, btnColor, btnFont);
+        loginBtn = ViewUtil.createStyledButton(contentPanel, text("login.sign.in"), new Point(width / 2 - 100, height / 2 + 30), 100, 30, btnColor, btnFont);
+        registerBtn = ViewUtil.createStyledButton(contentPanel, text("login.register"), new Point(width / 2 + 20, height / 2 + 30), 100, 30, btnColor, btnFont);
+        guestLoginBtn = ViewUtil.createStyledButton(contentPanel, text("login.guest"), new Point(width / 2 - 100, height / 2 + 80), 220, 32, btnColor, btnFont);
         loginBtn.addActionListener(event -> handleLogin()); // 登录按钮事件
         registerBtn.addActionListener(event -> handleRegister()); // 注册按钮事件
         guestLoginBtn.addActionListener(event -> mainFrame.showControl(null)); // 游客登录事件
@@ -111,5 +118,14 @@ public class LoginPanel extends JPanel {
         } finally {
             Arrays.fill(pass, '\0');
         }
+    }
+
+    public void applyLanguage() {
+        usernameLabel.setText(text("login.username"));
+        passwordLabel.setText(text("login.password"));
+        titleLabel.setText(text("login.title"));
+        loginBtn.setText(text("login.sign.in"));
+        registerBtn.setText(text("login.register"));
+        guestLoginBtn.setText(text("login.guest"));
     }
 }

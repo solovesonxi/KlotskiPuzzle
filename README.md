@@ -98,7 +98,7 @@ Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> Boar
 ## Playable Features
 
 - A 5×4 Huarong Dao board with three built-in layouts;
-- English and Simplified Chinese interfaces selected from the system locale or `--lang`;
+- English and Simplified Chinese interfaces selected from the in-game language menu, system locale, or `--lang`;
 - Keyboard, WASD, mouse, and on-screen directional controls;
 - Background A* search with progress, cancellation, and animated playback;
 - Undo, restart, and a 180-second timed challenge;

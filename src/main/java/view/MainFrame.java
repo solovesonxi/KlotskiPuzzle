@@ -4,6 +4,7 @@ import model.Difficulty;
 import model.MapModel;
 import util.AppResources;
 import util.BackgroundMusicPlayer;
+import util.Messages;
 import view.game.ControlPanel;
 import view.login.CustomDifficultyDialog;
 import view.login.LoginPanel;
@@ -15,6 +16,7 @@ import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static util.Messages.text;
 
@@ -31,7 +33,13 @@ public class MainFrame extends JFrame implements WindowListener {
     private final LoginPanel loginPanel; // 登录面板
     private ControlPanel controlPanel; // 控制面板
     private final JButton lastBtn, nextBtn, soundBtn; // 共享的播放控件
+    private final JPanel musicControls = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4));
+    private final JLabel musicLabel = new JLabel();
+    private final JMenu languageMenu = new JMenu();
+    private final JRadioButtonMenuItem englishItem = new JRadioButtonMenuItem();
+    private final JRadioButtonMenuItem chineseItem = new JRadioButtonMenuItem();
     private final BackgroundMusicPlayer musicPlayer;
+    private volatile boolean musicPlaying;
 
     public MainFrame(int width, int height) {
         super(text("app.title"));
@@ -59,6 +67,8 @@ public class MainFrame extends JFrame implements WindowListener {
                 text("music.next"), text("music.next.tooltip"));
         nextBtn.addActionListener(event -> playTrack(true)); // 播放下一首音乐
         ViewUtil.addButtonMouseListener(nextBtn, "resources/original/image/icons/next.png");
+        configureMusicControls();
+        configureLanguageMenu();
 
         musicPlayer = new BackgroundMusicPlayer(
                 loadAudioFiles(),
@@ -120,9 +130,8 @@ public class MainFrame extends JFrame implements WindowListener {
         if (controlPanel != null) {
             controlPanel.disposePanel();
         }
-        loginPanel.contentPanel.add(lastBtn);
-        loginPanel.contentPanel.add(nextBtn);
-        loginPanel.contentPanel.add(soundBtn);
+        musicControls.setBounds(getWidth() - 300, 8, 280, 58);
+        loginPanel.contentPanel.add(musicControls);
         cardLayout.show(container, "login"); // 显示登录卡片
     }
 
@@ -136,7 +145,8 @@ public class MainFrame extends JFrame implements WindowListener {
         dialog.setVisible(true); // 打开难度选择对话框
         Difficulty difficulty = dialog.getSelectedDifficulty();
         MapModel mapModel = new MapModel(difficulty.initialBoard());
-        controlPanel = new ControlPanel(this, this.getWidth(), this.getHeight(), lastBtn, nextBtn, soundBtn, mapModel, user, difficulty);
+        controlPanel = new ControlPanel(this, this.getWidth(), this.getHeight(), musicControls,
+                mapModel, user, difficulty);
         container.add(controlPanel, "control"); // 添加控制面板
         cardLayout.show(container, "control"); // 显示控制面板
         container.revalidate();
@@ -167,11 +177,71 @@ public class MainFrame extends JFrame implements WindowListener {
     }
 
     private void updateSoundButton(boolean playing) {
+        musicPlaying = playing;
         String actionText = playing ? text("music.pause") : text("music.play");
         soundBtn.setIcon(AppResources.icon(playing
                 ? "resources/original/image/icons/pause.png"
                 : "resources/original/image/icons/play.png"));
         ViewUtil.configureButtonAccessibility(soundBtn, actionText, actionText);
+    }
+
+    private void configureMusicControls() {
+        musicControls.setOpaque(true);
+        musicControls.setBackground(new Color(42, 31, 28));
+        musicControls.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(205, 170, 109), 1),
+                BorderFactory.createEmptyBorder(2, 8, 2, 8)));
+        musicLabel.setForeground(new Color(255, 223, 186));
+        musicLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        for (JButton button : List.of(lastBtn, soundBtn, nextBtn)) {
+            button.setPreferredSize(new Dimension(44, 44));
+        }
+        musicControls.add(musicLabel);
+        musicControls.add(lastBtn);
+        musicControls.add(soundBtn);
+        musicControls.add(nextBtn);
+        applyLanguage();
+    }
+
+    private void configureLanguageMenu() {
+        ButtonGroup languages = new ButtonGroup();
+        languages.add(englishItem);
+        languages.add(chineseItem);
+        languageMenu.add(englishItem);
+        languageMenu.add(chineseItem);
+        englishItem.addActionListener(event -> changeLanguage(Locale.ENGLISH));
+        chineseItem.addActionListener(event -> changeLanguage(Locale.SIMPLIFIED_CHINESE));
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(languageMenu);
+        setJMenuBar(menuBar);
+        applyLanguage();
+    }
+
+    private void changeLanguage(Locale locale) {
+        if (Messages.locale().equals(locale)) {
+            return;
+        }
+        Messages.useLocale(locale);
+        applyLanguage();
+        loginPanel.applyLanguage();
+        if (controlPanel != null && controlPanel.isVisible()) {
+            controlPanel.applyLanguage();
+        }
+    }
+
+    private void applyLanguage() {
+        setTitle(text("app.title"));
+        languageMenu.setText(text("settings.language"));
+        englishItem.setText(text("language.english"));
+        chineseItem.setText(text("language.chinese"));
+        englishItem.setSelected(Locale.ENGLISH.equals(Messages.locale()));
+        chineseItem.setSelected(Locale.SIMPLIFIED_CHINESE.equals(Messages.locale()));
+        musicLabel.setText(text("music.controls"));
+        ViewUtil.configureButtonAccessibility(lastBtn, text("music.previous"), text("music.previous.tooltip"));
+        ViewUtil.configureButtonAccessibility(nextBtn, text("music.next"), text("music.next.tooltip"));
+        updateSoundButton(musicPlaying);
+        musicControls.revalidate();
+        musicControls.repaint();
     }
 
     private void exitApplication() {

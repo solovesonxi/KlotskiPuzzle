@@ -223,4 +223,13 @@ public class GamePanel extends ListenerPanel {
     public int getRemainingSeconds() {
         return remainingSeconds;
     }
+
+    public void applyLanguage() {
+        if (stepLabel != null) {
+            stepLabel.setText(text("status.steps", steps));
+        }
+        if (countdownLabel != null) {
+            countdownLabel.setText(text("status.countdown", remainingSeconds));
+        }
+    }
 }

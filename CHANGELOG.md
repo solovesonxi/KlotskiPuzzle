@@ -12,6 +12,9 @@ All notable changes to KlotskiPuzzle are documented here.
 - Keep countdown state in the game model instead of parsing localized label text.
 - Prepare tagged releases with a portable Windows application and SHA-256 checksums.
 - Add a public scope-focused roadmap and document language-specific launch commands.
+- Add an in-game language menu that immediately refreshes login and gameplay controls.
+- Replace the default leaderboard presentation with a dedicated parchment-themed dialog.
+- Group the original previous, play/pause, and next icons into a labeled global music control.
 
 ## 1.0.0 - 2026-07-23
 

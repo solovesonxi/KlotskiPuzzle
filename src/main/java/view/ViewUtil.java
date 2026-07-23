@@ -104,7 +104,7 @@ public class ViewUtil {
     }
 
     // 创建退出按钮
-    public static void createExitButton(JPanel frame, String text, Point pos, int width, int height, Color bgColor, Font font) {
+    public static JButton createExitButton(JPanel frame, String text, Point pos, int width, int height, Color bgColor, Font font) {
         JButton btn = new JButton(text);
         // 基础样式设置
         btn.setBounds(pos.x, pos.y, width, height); // 设置按钮位置和大小
@@ -116,6 +116,7 @@ public class ViewUtil {
         btn.setOpaque(true); // 使组件不透明
         btn.setEnabled(false); // 禁用按钮
         frame.add(btn); // 加入面板
+        return btn;
     }
 
     // 为按钮添加鼠标监听器
