@@ -23,7 +23,9 @@
     <a href="https://github.com/44-99/KlotskiPuzzle/discussions">讨论区</a>
   </p>
 
-  <img src="docs/assets/project-preview.png" width="760" alt="KlotskiPuzzle 原创中性棋盘视觉预览">
+  <img src="docs/assets/demo.gif" width="760" alt="A* 后台搜索与 Swing EDT 动画回放的程序化演示">
+
+  <p><sub>该动图由项目脚本按真实线程与移动模型生成，不含第三方游戏画面。</sub></p>
 </div>
 
 KlotskiPuzzle 是一个从 Java GUI 课程项目演进而来的 Java 22+ Swing 华容道参考实现。它主要面向已经掌握 Java 基础、准备完成第一个 GUI 与算法综合项目的学生和初级开发者。
@@ -80,12 +82,6 @@ AI 执行链路可以概括为：
 ```text
 棋盘快照 -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> BoardRules -> 界面回放
 ```
-
-<p align="center">
-  <img src="docs/assets/demo.gif" width="680" alt="A* 后台搜索与 Swing EDT 动画回放的程序化演示">
-</p>
-
-该 GIF 是按项目真实线程与移动规则生成的流程演示，不是录制的第三方游戏画面。
 
 ## 可玩功能
 

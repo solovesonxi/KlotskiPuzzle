@@ -23,7 +23,9 @@
     <a href="https://github.com/44-99/KlotskiPuzzle/discussions">Discussions</a>
   </p>
 
-  <img src="docs/assets/project-preview.png" width="760" alt="Original neutral KlotskiPuzzle board preview">
+  <img src="docs/assets/demo.gif" width="760" alt="Programmatic demonstration of background A* search and Swing EDT playback">
+
+  <p><sub>This animation is generated from the project's actual threading and movement model and contains no third-party gameplay footage.</sub></p>
 </div>
 
 KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) that evolved from a Java GUI course project. Its primary audience is students and junior Java developers who know the language basics and want to build their first project combining a desktop UI with a search algorithm.
@@ -80,12 +82,6 @@ The AI execution flow is:
 ```text
 Board snapshot -> AiSolveCoordinator -> SwingWorker -> A* -> Swing Timer -> BoardRules -> UI playback
 ```
-
-<p align="center">
-  <img src="docs/assets/demo.gif" width="680" alt="Programmatic demonstration of background A* search and Swing EDT playback">
-</p>
-
-This GIF is generated from the project's actual threading and movement model; it is not third-party gameplay footage.
 
 ## Playable Features
 
