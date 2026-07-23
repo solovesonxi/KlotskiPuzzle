@@ -40,7 +40,11 @@ jobs:
       - name: Read project version
         shell: pwsh
         run: |
-          $version = mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+          [xml]$pom = Get-Content -LiteralPath pom.xml
+          $version = [string]$pom.project.version
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Project version is missing from pom.xml"
+          }
           "PROJECT_VERSION=$version" >> $env:GITHUB_ENV
       - name: Build portable Windows application
         shell: pwsh
