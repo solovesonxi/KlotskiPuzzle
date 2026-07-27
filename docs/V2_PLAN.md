@@ -6,7 +6,7 @@ KlotskiPuzzle v2 is a Java 22 explainable Huarong Dao algorithm lab. Its primary
 
 ## Implementation status
 
-The current development slice provides validated content-addressed Puzzle Definitions, immutable Puzzle States, Cell Step and Piece Move successor generation, stable Puzzle Presets, and one deterministic runner for BFS, Greedy Best-First, A*, and Weighted A*. The bilingual Lab Mode runs off the Swing event-dispatch thread and now includes Search Overview, inspectable Search Expansion milestones, State Inspector candidate decisions, validated Solution Replay, and versioned JSON Experiment Record export.
+The current development slice provides validated content-addressed Puzzle Definitions, immutable Puzzle States, Cell Step and Piece Move successor generation, stable Puzzle Presets, and one deterministic runner for BFS, Greedy Best-First, A*, and Weighted A*. The bilingual Lab Mode runs off the Swing event-dispatch thread and now includes Search Overview, inspectable Search Expansion milestones, State Inspector candidate decisions, validated Solution Replay, and versioned JSON Experiment Record export. A reproducible CLI report runs all four strategies under one declared contract and writes TSV plus JSON evidence; the interactive side-by-side comparison remains open.
 
 The password login/registration UI and credential repository have been removed in favor of a direct Play/Lab start screen. This is still not stable v2: Puzzle Definition import/export, complete compressed traces, Algorithm Comparison, HTML reports, Play Mode session qualification, optional Player Profiles, legacy migration UI, and complete Play Mode responsive-layout work remain open.
 

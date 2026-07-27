@@ -1,0 +1,53 @@
+{
+  "formatVersion": 1,
+  "createdAt": "2026-07-27T04:01:11.215376400Z",
+  "puzzle": {
+    "formatVersion": 1,
+    "contentId": "sha256:6a63e1942bd96b3a33b3c315f54fa3fe2a2bd8d7b37e1f36285e9df60fd08341",
+    "initialState": "34433443322330031001",
+    "movementRule": "CELL_STEP"
+  },
+  "experiment": {
+    "strategy": "WEIGHTED_A_STAR",
+    "heuristicWeight": 1.5,
+    "maxDiscoveredStates": 250000
+  },
+  "outcome": {
+    "status": "SOLVED",
+    "expandedStates": 10716,
+    "discoveredStates": 13002,
+    "maximumFrontier": 2295,
+    "elapsedNanos": 71678200,
+    "solution": [
+      {"row": 2, "column": 1, "direction": "DOWN", "distance": 1},
+      {"row": 0, "column": 1, "direction": "DOWN", "distance": 1},
+      {"row": 3, "column": 1, "direction": "DOWN", "distance": 1},
+      {"row": 1, "column": 1, "direction": "DOWN", "distance": 1},
+      {"row": 0, "column": 0, "direction": "RIGHT", "distance": 1},
+      {"row": 2, "column": 0, "direction": "UP", "distance": 1},
+      {"row": 1, "column": 0, "direction": "UP", "distance": 1},
+      {"row": 2, "column": 1, "direction": "LEFT", "distance": 1},
+      {"row": 2, "column": 3, "direction": "LEFT", "distance": 1},
+      {"row": 2, "column": 2, "direction": "UP", "distance": 1},
+      {"row": 4, "column": 3, "direction": "UP", "distance": 1},
+      {"row": 3, "column": 3, "direction": "UP", "distance": 1},
+      {"row": 4, "column": 1, "direction": "RIGHT", "distance": 1},
+      {"row": 4, "column": 0, "direction": "RIGHT", "distance": 1},
+      {"row": 4, "column": 2, "direction": "UP", "distance": 1},
+      {"row": 4, "column": 1, "direction": "RIGHT", "distance": 1},
+      {"row": 2, "column": 0, "direction": "DOWN", "distance": 1},
+      {"row": 1, "column": 2, "direction": "UP", "distance": 1},
+      {"row": 2, "column": 3, "direction": "LEFT", "distance": 1},
+      {"row": 2, "column": 2, "direction": "LEFT", "distance": 1},
+      {"row": 3, "column": 2, "direction": "UP", "distance": 1},
+      {"row": 4, "column": 2, "direction": "RIGHT", "distance": 1},
+      {"row": 3, "column": 0, "direction": "RIGHT", "distance": 1}
+    ]
+  },
+  "environment": {
+    "javaVersion": "22.0.2",
+    "osName": "Windows 11",
+    "osVersion": "10.0",
+    "osArchitecture": "amd64"
+  }
+}

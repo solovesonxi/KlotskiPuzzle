@@ -6,7 +6,7 @@
 
   <h1>KlotskiPuzzle</h1>
 
-  <p><strong>A Java 22+ explainable Huarong Dao algorithm lab: run, inspect, replay, and export deterministic search experiments.</strong></p>
+  <p><strong>A playable Java 22+ Huarong Dao game and explainable algorithm lab: move the pieces, inspect the search, replay solutions, and reproduce experiments.</strong></p>
 
   <p>
     <a href="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml/badge.svg"></a>
@@ -32,11 +32,11 @@
   <p><sub>This animation is generated from the project's actual threading and movement model and contains no third-party gameplay footage.</sub></p>
 </div>
 
-KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) that evolved from a Java GUI course project into an explainable algorithm lab. Its primary audience is algorithm learners, students, and Java developers who want to see not only whether a solver succeeds, but which states it expands, why candidates enter or leave the frontier, and how the resulting path changes the board.
+KlotskiPuzzle is a Java 22+ Swing implementation of Huarong Dao (Klotski) with two equal entry points: a playable puzzle and an explainable algorithm lab. It is built for algorithm learners, students, and Java developers who want to see not only whether a solver succeeds, but which states it expands, why candidates enter or leave the frontier, and how the resulting path changes the board.
 
 The repository is not positioned as a production-ready commercial game. It demonstrates how to organize multi-cell movement rules, a playable UI, A* search, background work, animated playback, local saves, and automated tests into a project that can be run, verified, and extended.
 
-The current `v2.0.0-beta.1` preview contains separate Play Mode and Lab Mode lifecycles. Lab Mode provides deterministic search events, an inspectable expansion timeline, candidate-decision explanations, validated solution replay, and JSON Experiment Record export. The remaining stable-v2 scope is tracked in the [v2 plan](docs/V2_PLAN.md) and [domain context](CONTEXT.md).
+The `v2.0.0-beta.1` preview contains separate Play Mode and Lab Mode lifecycles. Lab Mode provides deterministic search events, an inspectable expansion timeline, candidate-decision explanations, validated solution replay, and JSON Experiment Record export. Current `main` additionally provides a reproducible four-strategy CLI report with checked-in TSV and JSON evidence; that command was added after beta.1 and is not part of the published beta assets. The remaining stable-v2 scope is tracked in the [v2 plan](docs/V2_PLAN.md) and [domain context](CONTEXT.md).
 
 ## Why This Project Exists
 
@@ -89,6 +89,8 @@ Open the [GitHub Releases page](https://github.com/44-99/KlotskiPuzzle/releases)
 
 The [project website](https://44-99.github.io/KlotskiPuzzle/) provides a shorter product overview before you download or inspect the source. This is a preview release: the implemented walkthrough, inspector, replay, and JSON export are usable, while the remaining stable-v2 work is listed explicitly below and in the roadmap.
 
+The reproducible strategy report documented below belongs to current `main`, not to the `v2.0.0-beta.1` Windows package or JAR.
+
 ## What You Can Learn
 
 | Question | Approach in this project | Start here |
@@ -99,6 +101,7 @@ The [project website](https://44-99.github.io/KlotskiPuzzle/) provides a shorter
 | How can Swing stay responsive? | An AI coordinator uses `SwingWorker` for search and `Swing Timer` for EDT playback | [`AiSolveCoordinator.java`](src/main/java/controller/AiSolveCoordinator.java) |
 | How can a search decision be explained? | The shared runner emits deterministic `SearchExpansion` events containing state scores and accepted or rejected candidates | [`SearchExperimentRunner.java`](src/main/java/lab/SearchExperimentRunner.java), [`SearchExpansion.java`](src/main/java/lab/SearchExpansion.java) |
 | How can results be reviewed and shared? | `SolutionReplay` validates every step, while a versioned JSON record includes the puzzle, strategy, outcome, path, metrics, and runtime environment | [`SolutionReplay.java`](src/main/java/lab/SolutionReplay.java), [`ExperimentRecord.java`](src/main/java/lab/ExperimentRecord.java) |
+| How can strategies be compared without hand-copying metrics? | One CLI runs all four strategies under the same puzzle, move rule, state limit, and weight, then emits TSV and versioned JSON records | [Reproducible search report](docs/SEARCH_STRATEGY_REPORT.md), [`SearchStrategyReport.java`](src/main/java/cli/SearchStrategyReport.java) |
 | How does course code become a verifiable project? | Maven builds it, JUnit 5 checks rules and paths, and GitHub Actions runs continuous integration with Java 22 | [`pom.xml`](pom.xml), [`src/test/java`](src/test/java) |
 | How are local-data boundaries handled? | The start screen has no password accounts; legacy saves and rankings remain local under the user directory and future migration must be user-controlled | [`data`](src/main/java/data), [`0005-use-local-profiles-without-passwords.md`](docs/adr/0005-use-local-profiles-without-passwords.md) |
 
@@ -127,11 +130,12 @@ Puzzle Definition -> Search Experiment -> SearchExperimentRunner
 - State Inspector explanations for candidate scores and accept/reject decisions;
 - Solution Replay with previous, play/pause, next, and direct slider navigation;
 - Versioned JSON Experiment Record export with puzzle identity, configuration, path, metrics, and runtime context;
+- A reproducible current-`main` CLI comparison that writes one TSV table and four reviewable JSON records;
 - Undo, restart, and a 180-second timed challenge;
 - A password-free Play/Lab start screen; optional local Player Profiles remain v2 work;
 - Original background music plus selection, move, invalid-move, undo, victory, and defeat effects.
 
-Lab Mode records the first 150 expansions plus deterministic 500-expansion milestones for interactive inspection, while aggregate result metrics remain exact. Complete compressed traces, puzzle import/export, algorithm-comparison reports, and read-only HTML reports remain v2 work tracked in the [v2 plan](docs/V2_PLAN.md).
+Lab Mode records the first 150 expansions plus deterministic 500-expansion milestones for interactive inspection, while aggregate result metrics remain exact. The CLI comparison report is implemented; complete compressed traces, puzzle import/export, an interactive side-by-side comparison, and read-only HTML reports remain v2 work tracked in the [v2 plan](docs/V2_PLAN.md).
 
 ## Controls and Local Data
 
@@ -174,6 +178,16 @@ Automated tests cover board integrity, legal and illegal movement, all four Lab 
 
 Move counts plus expanded/discovered-state baselines for all three presets are recorded in [solver benchmarks](docs/SOLVER_BENCHMARKS.md). Performance changes should be compared under the same move definition.
 
+The [reproducible four-strategy report](docs/SEARCH_STRATEGY_REPORT.md) fixes the tutorial layout, Cell Step rule, 250,000-state limit, and Weighted A* weight at 1.5. Its checked-in result compares BFS, Greedy Best-First, A*, and Weighted A* without treating machine-dependent elapsed time as a deterministic claim:
+
+![Expanded states under the shared tutorial Cell Step contract](docs/assets/tutorial-cell-step-expanded-states.svg)
+
+Run the same current-`main` report and print TSV locally:
+
+```bash
+mvn -q exec:java -Dexec.mainClass=cli.SearchStrategyReport -Dexec.args="tutorial cell-step"
+```
+
 Print complete metrics for the current machine without editing a test:
 
 ```bash
@@ -186,11 +200,12 @@ mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
 - A* keeps at most 250,000 discovered states by default and reports the limit explicitly. One move means translating one piece by one cell; the project does not claim results under every alternative counting convention;
 - Lab Mode uses a themed user-resizable split workspace with continuous drag feedback and 1280×720 coverage; Play Mode still contains legacy absolute positioning, so broader small-screen and high-DPI support remains incomplete;
 - Optional Player Profiles are not implemented; legacy rankings and saves are local only, with no server-side authentication or cross-device synchronization;
+- The current CLI comparison produces reviewable data files, while the interactive side-by-side Algorithm Comparison remains planned for stable v2;
 - There is no free-form level editor yet; the difficulty dialog exposes three validated presets.
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) and the public [roadmap](ROADMAP.md) before contributing. Useful areas include complete trace export, Puzzle Definition import/export, Player Profile migration, HTML reports, GUI lifecycle tests, and deeper heuristic experiments. Use Issues for scoped work and Discussions for open-ended questions or ideas.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and the public [roadmap](ROADMAP.md) before contributing. Useful areas include complete trace export, Puzzle Definition import/export, interactive comparison, Player Profile migration, HTML reports, GUI lifecycle tests, and deeper heuristic experiments. Use Issues for scoped work and Discussions for open-ended questions or ideas.
 
 ## License
 

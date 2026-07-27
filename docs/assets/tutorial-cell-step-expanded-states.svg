@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Expanded states for four search strategies</title>
+  <desc id="desc">Under the tutorial Cell Step contract, BFS expands 19,837 states, Greedy Best-First 1,292, A star 12,445, and Weighted A star 10,716.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#171519"/>
+      <stop offset="1" stop-color="#2b201f"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#91442d"/>
+      <stop offset="1" stop-color="#d6a44f"/>
+    </linearGradient>
+    <style>
+      .sans { font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .muted { fill: #c9bca8; }
+      .label { fill: #f8eedc; font-size: 28px; font-weight: 650; }
+      .value { fill: #f8eedc; font-size: 26px; font-variant-numeric: tabular-nums; }
+    </style>
+  </defs>
+  <rect width="1200" height="700" rx="28" fill="url(#background)"/>
+  <text class="sans" x="64" y="76" fill="#f8eedc" font-size="38" font-weight="700">Expanded states under one contract</text>
+  <text class="sans muted" x="64" y="116" font-size="23">Tutorial · Cell Step · 250,000-state limit · lower means fewer expansions</text>
+
+  <g class="sans">
+    <text class="label" x="64" y="202">BFS</text>
+    <rect x="350" y="166" width="760" height="48" rx="12" fill="#443733"/>
+    <rect x="350" y="166" width="760" height="48" rx="12" fill="url(#bar)"/>
+    <text class="value" x="1090" y="202" text-anchor="end">19,837</text>
+
+    <text class="label" x="64" y="304">Greedy Best-First</text>
+    <rect x="350" y="268" width="760" height="48" rx="12" fill="#443733"/>
+    <rect x="350" y="268" width="50" height="48" rx="12" fill="url(#bar)"/>
+    <text class="value" x="420" y="304">1,292</text>
+
+    <text class="label" x="64" y="406">A*</text>
+    <rect x="350" y="370" width="760" height="48" rx="12" fill="#443733"/>
+    <rect x="350" y="370" width="477" height="48" rx="12" fill="url(#bar)"/>
+    <text class="value" x="847" y="406">12,445</text>
+
+    <text class="label" x="64" y="508">Weighted A*</text>
+    <rect x="350" y="472" width="760" height="48" rx="12" fill="#443733"/>
+    <rect x="350" y="472" width="411" height="48" rx="12" fill="url(#bar)"/>
+    <text class="value" x="781" y="508">10,716</text>
+  </g>
+
+  <line x1="64" y1="572" x2="1136" y2="572" stroke="#6e5948"/>
+  <text class="sans muted" x="64" y="616" font-size="21">Deterministic metrics from commit 80ac8c2 · Java 22.0.2</text>
+  <text class="sans muted" x="64" y="650" font-size="21">Elapsed time is intentionally omitted because it varies by machine.</text>
+</svg>

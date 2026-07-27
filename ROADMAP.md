@@ -12,6 +12,7 @@ KlotskiPuzzle is evolving from a playable Java Swing Huarong Dao reference into 
 - Run independent Lab Mode experiments with four deterministic strategies and two movement rules.
 - Inspect deterministic Search Expansion milestones and accepted/rejected candidates through Search Overview and State Inspector.
 - Replay validated solutions with step controls and export versioned JSON Experiment Records.
+- Generate a reproducible CLI comparison for BFS, Greedy Best-First, A*, and Weighted A* with checked-in TSV and JSON evidence.
 - Enter Play Mode or Lab Mode from a password-free start screen.
 
 ## V2 foundation
@@ -23,7 +24,7 @@ KlotskiPuzzle is evolving from a playable Java Swing Huarong Dao reference into 
 
 ## V2 lab experience
 
-- Compare BFS, Greedy Best-First Search, A*, and Weighted A* under one declared experiment contract.
+- Turn the implemented declared-contract CLI comparison into an interactive side-by-side Lab view.
 - Import and export validated 5x4 custom puzzles.
 - Add side-by-side Algorithm Comparison and self-contained read-only HTML Experiment Reports.
 - Keep the interface usable at 1280x720 and common Windows display scaling.

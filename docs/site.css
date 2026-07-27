@@ -104,6 +104,8 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; }
 
 .split { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 70px; }
 .text-link { color: var(--gold); font-weight: 750; }
+.report-figure { display: block; padding: 9px; background: #100f11; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.report-figure img { display: block; width: 100%; height: auto; border-radius: 9px; }
 .code-card { overflow: hidden; background: #100f11; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
 .code-title { padding: 13px 18px; color: #8f8274; font-size: .78rem; border-bottom: 1px solid var(--line); }
 .code-title span { display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 50%; background: var(--lacquer); }

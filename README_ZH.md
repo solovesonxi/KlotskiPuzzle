@@ -6,7 +6,7 @@
 
   <h1>KlotskiPuzzle</h1>
 
-  <p><strong>Java 22+ 可解释华容道算法实验室：运行、检查、回放并导出确定性搜索实验。</strong></p>
+  <p><strong>能直接玩的 Java 22+ 华容道，也是可解释的算法实验室：移动棋子、检查搜索、回放解法并复现实验。</strong></p>
 
   <p>
     <a href="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/44-99/KlotskiPuzzle/actions/workflows/ci.yml/badge.svg"></a>
@@ -32,11 +32,11 @@
   <p><sub>该动图由项目脚本按真实线程与移动模型生成，不含第三方游戏画面。</sub></p>
 </div>
 
-KlotskiPuzzle 是一个从 Java GUI 课程项目演进为可解释算法实验室的 Java 22+ Swing 华容道实现。它主要面向算法学习者、学生和 Java 开发者：不仅展示求解器是否成功，还展示它展开了哪些状态、候选状态为什么进入或离开搜索前沿，以及最终路径如何改变棋盘。
+KlotskiPuzzle 是一个 Java 22+ Swing 华容道实现，提供两个平级入口：可直接游玩的小游戏，以及可解释的算法实验室。它主要面向算法学习者、学生和 Java 开发者：不仅展示求解器是否成功，还展示它展开了哪些状态、候选状态为什么进入或离开搜索前沿，以及最终路径如何改变棋盘。
 
 这个仓库的重点不是提供成熟的商业游戏客户端，而是展示如何把多格棋子规则、可玩的桌面界面、A* 搜索、后台任务、动画回放、本地存档和自动化测试组织成一个可运行、可验证、可继续改造的工程。
 
-当前 `v2.0.0-beta.1` 预览版已经分离 Play Mode 与 Lab Mode 的生命周期。Lab Mode 已提供确定性搜索事件、可检查的展开时间线、候选决策解释、经过验证的解法回放和 JSON 实验记录导出；稳定版 v2 的剩余范围记录在 [v2 规划](docs/V2_PLAN.md) 与 [领域上下文](CONTEXT.md) 中。
+`v2.0.0-beta.1` 预览版已经分离 Play Mode 与 Lab Mode 的生命周期。Lab Mode 已提供确定性搜索事件、可检查的展开时间线、候选决策解释、经过验证的解法回放和 JSON 实验记录导出。当前 `main` 还提供可复现的四策略命令行报告及已提交的 TSV、JSON 证据；该命令在 beta.1 之后加入，不包含在已发布的 beta 安装包中。稳定版 v2 的剩余范围记录在 [v2 规划](docs/V2_PLAN.md) 与 [领域上下文](CONTEXT.md) 中。
 
 ## 为什么有这个项目
 
@@ -89,6 +89,8 @@ java -jar target/klotski-puzzle-2.0.0-beta.1.jar --lang=zh-CN
 
 [项目主页](https://44-99.github.io/KlotskiPuzzle/) 提供更精简的功能说明和下载入口。本次是预览版：搜索讲解、状态检查、解法回放和 JSON 导出已经可用，稳定 v2 尚未完成的部分会在下文和路线图中明确列出。
 
+下文的四策略复现实验属于当前 `main`，不属于 `v2.0.0-beta.1` Windows 包或 JAR。
+
 ## 你能从中学到什么
 
 | 核心问题 | 项目中的做法 | 推荐入口 |
@@ -99,6 +101,7 @@ java -jar target/klotski-puzzle-2.0.0-beta.1.jar --lang=zh-CN
 | 如何避免 Swing 界面卡死 | AI 协调器用 `SwingWorker` 后台搜索、`Swing Timer` 在 EDT 上逐步回放 | [`AiSolveCoordinator.java`](src/main/java/controller/AiSolveCoordinator.java) |
 | 如何解释一次搜索决策 | 共享运行器产生确定性的 `SearchExpansion` 事件，包含状态评分和每个候选的接受/拒绝原因 | [`SearchExperimentRunner.java`](src/main/java/lab/SearchExperimentRunner.java)、[`SearchExpansion.java`](src/main/java/lab/SearchExpansion.java) |
 | 如何复查和分享实验结果 | `SolutionReplay` 验证每一步，版本化 JSON 记录包含关卡、策略、结果、路径、指标和运行环境 | [`SolutionReplay.java`](src/main/java/lab/SolutionReplay.java)、[`ExperimentRecord.java`](src/main/java/lab/ExperimentRecord.java) |
+| 如何避免手工抄写算法对比数据 | 一个 CLI 在相同关卡、移动规则、状态上限和权重下运行四种策略，并输出 TSV 与版本化 JSON | [可复现搜索报告](docs/SEARCH_STRATEGY_REPORT.md)、[`SearchStrategyReport.java`](src/main/java/cli/SearchStrategyReport.java) |
 | 如何把课程代码变成可验证工程 | Maven 统一构建，JUnit 5 验证规则与路径，GitHub Actions 使用 Java 22 持续集成 | [`pom.xml`](pom.xml)、[`src/test/java`](src/test/java) |
 | 如何处理本地数据边界 | 开始页不再提供密码账号；旧存档和榜单仍位于用户目录，未来迁移必须由用户主动选择 | [`data`](src/main/java/data)、[`0005-use-local-profiles-without-passwords.md`](docs/adr/0005-use-local-profiles-without-passwords.md) |
 
@@ -127,11 +130,12 @@ Lab 解释链路可以概括为：
 - 状态检查器：解释候选评分及其接受/拒绝原因；
 - 解法回放：上一步、播放/暂停、下一步和滑块跳转；
 - 版本化 JSON 实验记录：包含关卡身份、配置、路径、指标和运行环境；
+- 当前 `main` 可运行四策略复现报告，生成一份 TSV 表格和四份可复查 JSON 记录；
 - 撤销、重新开始和 180 秒限时挑战；
 - 无密码的 Play/Lab 开始页；可选本地玩家档案仍属于 v2 工作；
 - 原创背景音乐，以及选中、移动、非法移动、撤销、胜利和失败音效。
 
-Lab Mode 会保留前 150 次展开和每 500 次展开的确定性里程碑用于交互检查，汇总结果指标仍然精确。完整压缩轨迹、关卡导入导出、算法对比报告和只读 HTML 报告仍属于 [v2 规划](docs/V2_PLAN.md) 中的后续工作。
+Lab Mode 会保留前 150 次展开和每 500 次展开的确定性里程碑用于交互检查，汇总结果指标仍然精确。命令行四策略报告已经实现；完整压缩轨迹、关卡导入导出、交互式并排算法对比和只读 HTML 报告仍属于 [v2 规划](docs/V2_PLAN.md) 中的后续工作。
 
 ## 操作与本地数据
 
@@ -174,6 +178,16 @@ mvn clean verify
 
 三种内置布局的步数、展开状态和已发现状态基线记录在 [求解器基准](docs/SOLVER_BENCHMARKS.md) 中，性能改动应在相同计步规则下比较。
 
+[四策略可复现报告](docs/SEARCH_STRATEGY_REPORT.md) 固定使用教学布局、单格步、250,000 状态上限，以及 1.5 的加权 A* 权重。已提交结果在不把机器相关耗时包装成确定性结论的前提下，对比 BFS、贪心最佳优先、A* 和加权 A*：
+
+![相同教学布局与单格步契约下的展开状态数](docs/assets/tutorial-cell-step-expanded-states.svg)
+
+在当前 `main` 重新运行并直接打印 TSV：
+
+```bash
+mvn -q exec:java -Dexec.mainClass=cli.SearchStrategyReport -Dexec.args="tutorial cell-step"
+```
+
 无需修改测试即可打印当前机器上的完整指标：
 
 ```bash
@@ -186,11 +200,12 @@ mvn -q exec:java -Dexec.mainClass=cli.SolverMetricsReport
 - A* 默认最多保留 250,000 个已发现状态，达到上限会停止并明确提示；“一步”定义为一个棋子平移一格，不宣称覆盖所有计步规则；
 - Lab Mode 使用自绘、可由用户调整且拖动实时跟随的分栏，并覆盖 1280×720；Play Mode 仍含旧式绝对坐标，更广泛的小屏幕和高 DPI 适配尚未完成；
 - 可选玩家档案尚未实现；旧榜单和存档仅限本地，不提供服务端认证或跨设备同步；
+- 当前命令行报告已经能生成可复查的数据文件，交互式并排 Algorithm Comparison 仍计划在稳定 v2 完成；
 - 当前没有真正的自由关卡编辑器，难度窗口提供的是三种经过校验的预设布局。
 
 ## 参与贡献
 
-请先阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING_ZH.md) 和公开的 [开发路线](ROADMAP.md)。适合的改进方向包括完整轨迹导出、关卡定义导入导出、玩家档案迁移、HTML 报告、GUI 生命周期测试和更深入的启发式实验。问题请提交到 Issues，开放式想法与使用交流请放到 Discussions。
+请先阅读 [CONTRIBUTING_ZH.md](CONTRIBUTING_ZH.md) 和公开的 [开发路线](ROADMAP.md)。适合的改进方向包括完整轨迹导出、关卡定义导入导出、交互式算法对比、玩家档案迁移、HTML 报告、GUI 生命周期测试和更深入的启发式实验。问题请提交到 Issues，开放式想法与使用交流请放到 Discussions。
 
 ## 许可证
 

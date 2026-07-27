@@ -1,0 +1,5 @@
+preset	movement_rule	strategy	heuristic_weight	max_discovered_states	status	moves	expanded	discovered	maximum_frontier	elapsed_ms
+tutorial	CELL_STEP	BFS	1.0	250000	SOLVED	23	19837	22233	2422	204
+tutorial	CELL_STEP	GREEDY_BEST_FIRST	1.0	250000	SOLVED	28	1292	1621	345	10
+tutorial	CELL_STEP	A_STAR	1.0	250000	SOLVED	23	12445	14848	2453	100
+tutorial	CELL_STEP	WEIGHTED_A_STAR	1.5	250000	SOLVED	23	10716	13002	2295	71

@@ -4,6 +4,9 @@ All notable changes to KlotskiPuzzle are documented here.
 
 ## Unreleased
 
+- Add a reproducible four-strategy CLI report that emits TSV and versioned JSON Experiment Records under one declared puzzle, movement-rule, limit, and heuristic contract.
+- Derive the numeric Windows application version from the Maven project version instead of leaving `jpackage.app-version` at its `1.0` default.
+
 ## 2.0.0-beta.1 - 2026-07-24
 
 - Remove password registration/login and the credential repository; replace them with a direct Play Mode / Algorithm Lab start screen without deleting legacy user files.
