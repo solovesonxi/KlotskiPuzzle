@@ -45,7 +45,12 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($version)) {
             throw "Project version is missing from pom.xml"
           }
+          $packageVersion = $version -replace '-.*$', ''
+          if ($packageVersion -notmatch '^\d+(\.\d+){0,3}$') {
+            throw "Project version '$version' cannot be converted to a jpackage application version"
+          }
           "PROJECT_VERSION=$version" >> $env:GITHUB_ENV
+          "PACKAGE_VERSION=$packageVersion" >> $env:GITHUB_ENV
       - name: Build portable Windows application
         shell: pwsh
         run: |
@@ -58,6 +63,7 @@ jobs:
             --main-jar "klotski-puzzle-$env:PROJECT_VERSION.jar" `
             --main-class Main `
             --dest dist `
+            --app-version "$env:PACKAGE_VERSION" `
             --java-options "-Dfile.encoding=UTF-8"
           Compress-Archive `
             -Path dist/KlotskiPuzzle `
